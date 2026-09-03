@@ -30,6 +30,7 @@ kotlin {
         compilerOptions { jvmTarget = JvmTarget.JVM_17 }
 
         withHostTest {}
+        withDeviceTest {}
     }
 
     jvm()
@@ -148,6 +149,7 @@ kotlin {
             //media
             implementation(libs.coil.gif)
             implementation(libs.coil.video)
+            implementation(libs.avif.coder.coil)
 
             // widget
             implementation(libs.androidx.glance.appwidget)
@@ -174,6 +176,12 @@ kotlin {
 
             //blurhash
             implementation(libs.vanniktech.blurhash)
+        }
+
+        getByName("androidDeviceTest").dependencies {
+            implementation(kotlin("test"))
+            implementation(libs.androidx.test.ext.junit)
+            implementation(libs.androidx.test.runner)
         }
     }
 

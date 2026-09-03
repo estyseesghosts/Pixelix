@@ -33,6 +33,7 @@ import de.jensklingenberg.ktorfit.http.Field
 import de.jensklingenberg.ktorfit.http.FormUrlEncoded
 import de.jensklingenberg.ktorfit.http.GET
 import de.jensklingenberg.ktorfit.http.Headers
+import de.jensklingenberg.ktorfit.http.PATCH
 import de.jensklingenberg.ktorfit.http.POST
 import de.jensklingenberg.ktorfit.http.PUT
 import de.jensklingenberg.ktorfit.http.Path
@@ -133,9 +134,19 @@ interface PixelfedApi {
         @Path("accountid") accountId: String
     ): PixelfedAccountDto
 
+    @GET("api/v1/accounts/{accountid}")
+    suspend fun getMastodonAccount(
+        @Path("accountid") accountId: String
+    ): PixelfedAccountDto
+
     @GET("api/v1.1/accounts/username/{username}?_pe=1")
     suspend fun getAccountByUsername(
         @Path("username") username: String
+    ): PixelfedAccountDto
+
+    @GET("api/v1/accounts/lookup")
+    suspend fun getMastodonAccountByUsername(
+        @Query("acct") username: String
     ): PixelfedAccountDto
 
     @Headers("Content-Type: application/json")
@@ -144,8 +155,19 @@ interface PixelfedApi {
         @Body body: PixelfedUpdateUserRequest
     ): PixelfedAccountDto
 
+    @Headers("Content-Type: application/json")
+    @PATCH("api/v1/accounts/update_credentials")
+    suspend fun updateMastodonAccount(
+        @Body body: PixelfedUpdateUserRequest
+    ): PixelfedAccountDto
+
     @POST("api/v1/accounts/update_credentials?_pe=1")
     suspend fun updateAvatar(
+        @Body body: MultiPartFormDataContent
+    ): PixelfedAccountDto
+
+    @PATCH("api/v1/accounts/update_credentials")
+    suspend fun updateMastodonAvatar(
         @Body body: MultiPartFormDataContent
     ): PixelfedAccountDto
 

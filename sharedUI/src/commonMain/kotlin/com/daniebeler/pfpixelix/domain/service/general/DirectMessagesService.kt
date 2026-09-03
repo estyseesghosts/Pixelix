@@ -8,6 +8,7 @@ import com.daniebeler.pfpixelix.domain.model.NewMessage
 import com.daniebeler.pfpixelix.domain.repository.pixelfed.PixelfedApi
 import com.daniebeler.pfpixelix.domain.service.pixelfed.PixelfedCollectionService
 import com.daniebeler.pfpixelix.domain.service.pixelfed.PixelfedDirectMessagesService
+import com.daniebeler.pfpixelix.domain.service.sharkey.SharkeyDirectMessagesService
 import com.daniebeler.pfpixelix.domain.service.utils.Resource
 import com.daniebeler.pfpixelix.domain.service.utils.loadListResources
 import com.daniebeler.pfpixelix.domain.service.utils.loadResource
@@ -30,12 +31,14 @@ interface DirectMessagesService {
 class DirectMessagesServiceDelegate(
     private val session: Session,
     private val pixelfed: PixelfedDirectMessagesService,
+    private val sharkey: SharkeyDirectMessagesService,
     //private val vernissage: VernissageTimelineService
 ) : DirectMessagesService {
 
     private val current: DirectMessagesService
-        get() = when (session.backendType) {
+        get() = when (session.backendType.value) {
             // BackendType.VERNISSAGE -> vernissage
+            BackendType.SHARKEY -> sharkey
             else -> pixelfed
         }
 

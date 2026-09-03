@@ -16,6 +16,7 @@ import com.daniebeler.pfpixelix.domain.model.RelatedHashtag
 import com.daniebeler.pfpixelix.domain.model.Search
 import com.daniebeler.pfpixelix.domain.model.Tag
 import com.daniebeler.pfpixelix.domain.service.pixelfed.PixelfedExploreService
+import com.daniebeler.pfpixelix.domain.service.sharkey.SharkeyExploreService
 import com.daniebeler.pfpixelix.domain.service.utils.Resource
 import com.daniebeler.pfpixelix.domain.service.vernissage.VernissageExploreService
 import com.daniebeler.pfpixelix.ui.composables.explore.trending.TrendingRange
@@ -70,12 +71,14 @@ interface ExploreService {
 class ExploreServiceDelegate(
     private val session: Session,
     private val pixelfed: PixelfedExploreService,
-    private val vernissage: VernissageExploreService
+    private val vernissage: VernissageExploreService,
+    private val sharkey: SharkeyExploreService
 ) : ExploreService {
 
     private val current: ExploreService
         get() = when (session.backendType.value) {
             BackendType.VERNISSAGE -> vernissage
+            BackendType.SHARKEY -> sharkey
             else -> pixelfed
         }
 

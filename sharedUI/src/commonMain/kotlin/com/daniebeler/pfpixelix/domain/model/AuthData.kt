@@ -31,3 +31,9 @@ data class AuthTokenVernissage(
     @SerialName("access_token") val accessToken: String,
     @SerialName("refresh_token") val refreshToken: String
 )
+
+@Serializable
+data class AuthTokenMastodon(
+    @SerialName("access_token") val accessToken: String,
+    @SerialName("created_at") val createdAt: String
+)

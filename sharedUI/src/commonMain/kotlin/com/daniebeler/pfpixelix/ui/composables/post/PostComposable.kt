@@ -58,6 +58,7 @@ import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -109,6 +110,8 @@ import pixelix.app.generated.resources.chemistry
 import pixelix.app.generated.resources.close
 import pixelix.app.generated.resources.datetime
 import pixelix.app.generated.resources.default_avatar
+import pixelix.app.generated.resources.open_in_browser
+import pixelix.app.generated.resources.photo
 import pixelix.app.generated.resources.delete
 import pixelix.app.generated.resources.delete_post
 import pixelix.app.generated.resources.document_text
@@ -1110,17 +1113,31 @@ private fun ImageWrapper(
     mediaAttachment: MediaAttachment,
     fullQuality: Boolean,
     setContentSize: (painter: AsyncImagePainter.State.Success) -> Unit,
-    onSuccess: () -> Unit
+    onSuccess: () -> Unit,
+    onFailure: () -> Unit = {}
 ) {
+    val uriHandler = LocalUriHandler.current
+    val imageUrl = if (fullQuality) mediaAttachment.url else mediaAttachment.previewUrl ?: mediaAttachment.url
+    var failed by remember(imageUrl) { mutableStateOf(false) }
+
+    if (failed) {
+        Column(
+            modifier = Modifier.fillMaxWidth().aspectRatio(mediaAttachment.aspectRatio?.toFloat() ?: 1f)
+                .background(MaterialTheme.colorScheme.surfaceVariant),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Icon(vectorResource(Res.drawable.photo), contentDescription = null)
+            TextButton(onClick = { uriHandler.openUri(imageUrl) }) {
+                Text(stringResource(Res.string.open_in_browser))
+            }
+        }
+        return
+    }
+
     AsyncImage(
         model = ImageRequest.Builder(LocalPlatformContext.current)
-            .data(
-                if (fullQuality) {
-                    mediaAttachment.url
-                } else {
-                    mediaAttachment.previewUrl ?: mediaAttachment.url
-                }
-            )
+            .data(imageUrl)
             .size(Size.ORIGINAL)
             .precision(Precision.EXACT)
             .build(),
@@ -1130,6 +1147,10 @@ private fun ImageWrapper(
         onSuccess = { state ->
             setContentSize(state)
             onSuccess()
+        },
+        onError = {
+            failed = true
+            onFailure()
         })
 }
 
@@ -1175,7 +1196,9 @@ fun MediaDialog(
                         mediaAttachment,
                         true,
                         { zoomState.setContentSize(it.painter.intrinsicSize) },
-                        {isLoading = false})
+                        { isLoading = false },
+                        { isLoading = false }
+                    )
                 } else {
                     VideoAttachment(mediaAttachment, postViewModel, {isLoading = false}, isMasonry = false)
                 }

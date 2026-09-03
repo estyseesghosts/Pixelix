@@ -12,6 +12,8 @@ import com.daniebeler.pfpixelix.domain.repository.pixelfed.PixelfedApi
 import com.daniebeler.pfpixelix.domain.repository.pixelfed.createPixelfedApi
 import com.daniebeler.pfpixelix.domain.repository.serializers.SavedSearchesSerializer
 import com.daniebeler.pfpixelix.domain.repository.serializers.SessionStorageSerializer
+import com.daniebeler.pfpixelix.domain.repository.sharkey.SharkeyApi
+import com.daniebeler.pfpixelix.domain.repository.sharkey.createSharkeyApi
 import com.daniebeler.pfpixelix.domain.repository.vernissage.VernissageApi
 import com.daniebeler.pfpixelix.domain.repository.vernissage.createVernissageApi
 import com.daniebeler.pfpixelix.domain.service.file.FileService
@@ -43,6 +45,7 @@ import com.daniebeler.pfpixelix.domain.service.general.WidgetService
 import com.daniebeler.pfpixelix.domain.service.general.WidgetServiceDelegate
 import com.daniebeler.pfpixelix.domain.service.pixelfed.PixelfedAuthInterceptor
 import com.daniebeler.pfpixelix.domain.service.preferences.UserPreferences
+import com.daniebeler.pfpixelix.domain.service.sharkey.SharkeyAuthInterceptor
 import com.daniebeler.pfpixelix.domain.service.vernissage.VernissageAuthInterceptor
 import com.daniebeler.pfpixelix.ui.events.AccountIntentHandler
 import com.daniebeler.pfpixelix.ui.events.BackToTopTrigger
@@ -77,6 +80,8 @@ import me.tatarka.inject.annotations.Scope
 @Scope
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY_GETTER)
 annotation class AppSingleton
+
+expect fun ImageLoader.Builder.addPlatformImageDecoders(): ImageLoader.Builder
 
 @AppSingleton
 @Component
@@ -152,6 +157,10 @@ abstract class AppComponent(
 
     @Qualifier
     @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION, AnnotationTarget.VALUE_PARAMETER)
+    annotation class SharkeyClient
+
+    @Qualifier
+    @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION, AnnotationTarget.VALUE_PARAMETER)
     annotation class VernissageClient
 
     @Qualifier
@@ -215,6 +224,36 @@ abstract class AppComponent(
             .baseUrl("https://err.or/")
             .build()
             .createPixelfedApi()
+
+    @Provides
+    @AppSingleton
+    @SharkeyClient
+    fun provideSharkeyHttpClient(json: Json, session: Session): HttpClient {
+        val authInterceptor = SharkeyAuthInterceptor(session)
+        return HttpClient {
+            expectSuccess = true
+            install(ContentNegotiation) { json(json) }
+            install(HttpTimeout) {
+                requestTimeoutMillis = 60000
+                socketTimeoutMillis = 60000
+                connectTimeoutMillis = 60000
+            }
+        }.apply {
+            plugin(HttpSend).intercept { request ->
+                with(authInterceptor) { intercept(request) }
+            }
+        }
+    }
+
+    @Provides
+    @AppSingleton
+    fun provideSharkeyApi(@SharkeyClient client: HttpClient): SharkeyApi =
+        Ktorfit.Builder()
+            .converterFactories(CallConverterFactory())
+            .httpClient(client)
+            .baseUrl("https://err.or/")
+            .build()
+            .createSharkeyApi()
 
     @Provides
     @AppSingleton
@@ -304,6 +343,7 @@ abstract class AppComponent(
             )
             .diskCachePolicy(CachePolicy.ENABLED)
             .diskCache(FileService.createDiskCache())
+            .addPlatformImageDecoders()
             .build()
 
     companion object

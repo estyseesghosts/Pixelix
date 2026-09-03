@@ -5,6 +5,7 @@ import com.daniebeler.pfpixelix.domain.model.PaginatedResponse
 import com.daniebeler.pfpixelix.domain.model.Post
 import com.daniebeler.pfpixelix.domain.repository.pixelfed.PixelfedApi
 import com.daniebeler.pfpixelix.domain.service.pixelfed.PixelfedTimelineService
+import com.daniebeler.pfpixelix.domain.service.sharkey.SharkeyTimelineService
 import com.daniebeler.pfpixelix.domain.service.utils.Resource
 import com.daniebeler.pfpixelix.domain.service.vernissage.VernissageTimelineService
 import kotlinx.coroutines.flow.Flow
@@ -62,17 +63,35 @@ interface TimelineService {
         }
 }
 
+fun Flow<Resource<PaginatedResponse<Post>>>.filterTextPosts() = map { event ->
+    if (event is Resource.Success<PaginatedResponse<Post>>) {
+        Resource.Success(
+            event.data.copy(
+                data = event.data.data.filter { post ->
+                    post.mediaAttachments.any { attachment ->
+                        attachment.type in setOf(null, "image", "video", "gifv")
+                    }
+                }
+            )
+        )
+    } else {
+        event
+    }
+}
+
 @Inject
 @AppSingleton
 class TimelineServiceDelegate(
     private val session: Session,
     private val pixelfed: PixelfedTimelineService,
-    private val vernissage: VernissageTimelineService
+    private val vernissage: VernissageTimelineService,
+    private val sharkey: SharkeyTimelineService
 ) : TimelineService {
 
     private val current: TimelineService
         get() = when (session.backendType.value) {
             BackendType.VERNISSAGE -> vernissage
+            BackendType.SHARKEY -> sharkey
             else -> pixelfed
         }
 

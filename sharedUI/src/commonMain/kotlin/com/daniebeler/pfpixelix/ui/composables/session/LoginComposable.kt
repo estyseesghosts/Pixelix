@@ -71,7 +71,10 @@ import org.jetbrains.compose.resources.vectorResource
 import pixelix.app.generated.resources.Res
 import pixelix.app.generated.resources.chevron_right
 import pixelix.app.generated.resources.close
+import pixelix.app.generated.resources.fediverse_logo
 import pixelix.app.generated.resources.i_don_t_have_an_account
+import pixelix.app.generated.resources.mastodon_full_logo_black
+import pixelix.app.generated.resources.mastodon_full_logo_white
 import pixelix.app.generated.resources.pixelfed_full_logo_black
 import pixelix.app.generated.resources.pixelfed_full_logo_white
 import pixelix.app.generated.resources.pixelix_logo_black_xxl
@@ -382,7 +385,22 @@ fun PlatformSelectionLayout(
             description = "Built for photographers first. Publish and explore high-quality art with full EXIF metadata, HDR support, and account verification.",
             image = if (dark) Res.drawable.vernissage_full_logo_white else Res.drawable.vernissage_full_logo_black,
             onClick = { onPlatformSelected(BackendType.VERNISSAGE) })
+
         Spacer(modifier = Modifier.height(16.dp))
+
+        PlatformCard(
+            title = "Mastodon",
+            description = "The largest fediverse network. Follow friends, share updates, and join communities across thousands of independent servers.",
+            image = if (dark) Res.drawable.mastodon_full_logo_white else Res.drawable.mastodon_full_logo_black,
+            onClick = { onPlatformSelected(BackendType.MASTODON) })
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        PlatformCard(
+            title = "Sharkey",
+            description = "A customizable social platform for sharing notes, photos, and videos across the Fediverse.",
+            image = Res.drawable.fediverse_logo,
+            onClick = { onPlatformSelected(BackendType.SHARKEY) })
     }
 }
 

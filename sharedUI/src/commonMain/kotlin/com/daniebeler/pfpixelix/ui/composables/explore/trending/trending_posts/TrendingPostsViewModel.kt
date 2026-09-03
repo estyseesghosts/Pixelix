@@ -69,7 +69,7 @@ class TrendingPostsViewModel @Inject constructor(
                         isRefreshing = false,
                         trendingPosts = updatedPosts,
                         nextId = result.data.next,
-                        endReached = newPosts.isEmpty(),
+                        endReached = newPosts.isEmpty() || result.data.next == null,
                         error = ""
                     )
                 }

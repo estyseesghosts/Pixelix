@@ -9,6 +9,7 @@ import com.daniebeler.pfpixelix.domain.model.PostContext
 import com.daniebeler.pfpixelix.domain.model.ReportResponse
 import com.daniebeler.pfpixelix.domain.repository.pixelfed.PixelfedApi
 import com.daniebeler.pfpixelix.domain.service.pixelfed.PixelfedPostService
+import com.daniebeler.pfpixelix.domain.service.sharkey.SharkeyPostService
 import com.daniebeler.pfpixelix.domain.service.utils.Resource
 import com.daniebeler.pfpixelix.domain.service.vernissage.VernissagePostService
 import kotlinx.coroutines.flow.Flow
@@ -164,12 +165,14 @@ fun List<ReplyNode>.updatePost(nodeId: String, transform: (Post) -> Post): List<
 class PostServiceDelegate(
     private val session: Session,
     private val pixelfed: PixelfedPostService,
-    private val vernissage: VernissagePostService
+    private val vernissage: VernissagePostService,
+    private val sharkey: SharkeyPostService
 ) : PostService {
 
     private val current: PostService
         get() = when (session.backendType.value) {
             BackendType.VERNISSAGE -> vernissage
+            BackendType.SHARKEY -> sharkey
             else -> pixelfed
         }
 

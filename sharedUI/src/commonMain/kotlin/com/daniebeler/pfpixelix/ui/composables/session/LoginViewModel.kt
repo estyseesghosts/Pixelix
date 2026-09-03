@@ -93,6 +93,8 @@ class LoginViewModel(
         val url = when (selectedPlatform) {
             BackendType.PIXELFED -> "https://pixelfed.org/servers"
             BackendType.VERNISSAGE -> "https://joinvernissage.org/servers"
+            BackendType.MASTODON -> "https://joinmastodon.org/servers"
+            BackendType.SHARKEY -> "https://joinsharkey.org/"
             null -> "https://pixelfed.org/servers"
         }
         platform.openUrl(url)

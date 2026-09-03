@@ -33,9 +33,8 @@ class PreferencesViewModel(
     }
 
     fun openMoreSettingsPage() {
-        val customUrl = if (backendType == BackendType.PIXELFED) "settings/home" else "account"
         authService.getCurrentSession()?.let {
-            platform.openUrl(it.serverUrl + customUrl)
+            platform.openUrl(it.serverUrl + backendType.moreSettingsPath())
         }
     }
 
@@ -53,4 +52,11 @@ class PreferencesViewModel(
             platform.openUrl(it.serverUrl + customUrl)
         }
     }
+}
+
+internal fun BackendType.moreSettingsPath() = when (this) {
+    BackendType.PIXELFED -> "settings/home"
+    BackendType.VERNISSAGE -> "account"
+    BackendType.MASTODON -> "settings/profile"
+    BackendType.SHARKEY -> "settings/profile"
 }

@@ -45,10 +45,11 @@ fun LazyStaggeredGridScope.postsWrapperComposable(
     editRemove: (postId: String) -> Unit = { },
     onClick: ((id: String) -> Unit)? = null
 ) {
+    val presentedPosts = posts.forPresentation(view)
 
     if (view == ViewEnum.Grid) {
         postsGridInScope(
-            posts = posts,
+            posts = presentedPosts,
             isLoading = isLoading,
             isRefreshing = isRefreshing,
             endReached = endReached,
@@ -64,7 +65,7 @@ fun LazyStaggeredGridScope.postsWrapperComposable(
 
     if (view == ViewEnum.Timeline) {
         postsListInScope(
-            posts = posts,
+            posts = presentedPosts,
             isLoading = isLoading,
             isRefreshing = isRefreshing,
             endReached = endReached,
@@ -76,7 +77,7 @@ fun LazyStaggeredGridScope.postsWrapperComposable(
 
     if (view == ViewEnum.Masonry) {
         postsMasonryInScope(
-            posts = posts,
+            posts = presentedPosts,
             isLoading = isLoading,
             isRefreshing = isRefreshing,
             endReached = endReached,
@@ -87,7 +88,7 @@ fun LazyStaggeredGridScope.postsWrapperComposable(
 
     if (view == ViewEnum.LargeMasonry) {
         postsLargeMasonryInScope(
-            posts = posts,
+            posts = presentedPosts,
             isLoading = isLoading,
             isRefreshing = isRefreshing,
             endReached = endReached,
@@ -96,6 +97,13 @@ fun LazyStaggeredGridScope.postsWrapperComposable(
         )
     }
 }
+
+internal fun List<Post>.forPresentation(view: ViewEnum): List<Post> =
+    if (view == ViewEnum.Timeline) this else filter { post ->
+        post.mediaAttachments.any { attachment ->
+            attachment.type in setOf(null, "image", "video", "gifv")
+        }
+    }
 
 private fun LazyStaggeredGridScope.postsGridInScope(
     posts: List<Post>,

@@ -37,7 +37,7 @@ data class PixelfedMetaDto(
 
 @Serializable
 data class PixelfedOriginalDto(
-    @SerialName("aspect") val aspect: Double
+    @SerialName("aspect") val aspect: Double? = null
 )
 
 fun PixelfedMediaAttachmentDto.toDomain(): MediaAttachment {

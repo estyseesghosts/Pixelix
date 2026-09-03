@@ -3,8 +3,10 @@ package com.daniebeler.pfpixelix.domain.service.general
 import com.daniebeler.pfpixelix.di.AppSingleton
 import com.daniebeler.pfpixelix.domain.model.Credentials
 import com.daniebeler.pfpixelix.domain.service.capabilities.Capabilities
+import com.daniebeler.pfpixelix.domain.service.capabilities.MastodonCapabilities
 import com.daniebeler.pfpixelix.domain.service.capabilities.NoCapabilities
 import com.daniebeler.pfpixelix.domain.service.capabilities.PixelfedCapabilities
+import com.daniebeler.pfpixelix.domain.service.capabilities.SharkeyCapabilities
 import com.daniebeler.pfpixelix.domain.service.capabilities.VernissageCapabilities
 import io.ktor.client.call.HttpClientCall
 import io.ktor.client.plugins.Sender
@@ -43,10 +45,14 @@ class Session {
 
 enum class BackendType {
     PIXELFED,
-    VERNISSAGE
+    VERNISSAGE,
+    MASTODON,
+    SHARKEY
 }
 
 fun BackendType.toCapabilities(): Capabilities = when (this) {
     BackendType.PIXELFED   -> PixelfedCapabilities
     BackendType.VERNISSAGE -> VernissageCapabilities
+    BackendType.MASTODON   -> MastodonCapabilities
+    BackendType.SHARKEY    -> SharkeyCapabilities
 }

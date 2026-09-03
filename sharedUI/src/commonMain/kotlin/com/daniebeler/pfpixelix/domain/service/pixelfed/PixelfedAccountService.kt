@@ -14,6 +14,8 @@ import com.daniebeler.pfpixelix.domain.repository.pixelfed.PixelfedApi
 import com.daniebeler.pfpixelix.domain.service.file.FileService
 import com.daniebeler.pfpixelix.domain.service.general.AccountService
 import com.daniebeler.pfpixelix.domain.service.general.AuthService
+import com.daniebeler.pfpixelix.domain.service.general.BackendType
+import com.daniebeler.pfpixelix.domain.service.general.Session
 import com.daniebeler.pfpixelix.domain.service.pixelfed.model.PixelfedAccountDto
 import com.daniebeler.pfpixelix.domain.service.pixelfed.model.toDomain
 import com.daniebeler.pfpixelix.domain.service.utils.Resource
@@ -43,7 +45,8 @@ import me.tatarka.inject.annotations.Inject
 class PixelfedAccountService(
     private val authService: AuthService,
     private val api: PixelfedApi,
-    private val fileService: FileService
+    private val fileService: FileService,
+    private val session: Session
 ) : AccountService {
     override val refreshSignal = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 
@@ -66,8 +69,10 @@ class PixelfedAccountService(
     override fun updateAccount(
         username: String, updateUserRequest: UpdateUserRequest
     ) = loadResource {
-
-        val result = api.updateAccount(updateUserRequest.toPixelfed()).toDomain()
+        val result = when (session.backendType.value) {
+            BackendType.MASTODON -> api.updateMastodonAccount(updateUserRequest.toPixelfed())
+            else -> api.updateAccount(updateUserRequest.toPixelfed())
+        }.toDomain()
         //refreshSignal.emit(Unit)
         result
     }
@@ -99,7 +104,10 @@ class PixelfedAccountService(
                     Logger.Companion.e("AccountService.updateAccount error", e)
                 }
             })
-            api.updateAvatar(body).toDomain()
+            when (session.backendType.value) {
+                BackendType.MASTODON -> api.updateMastodonAvatar(body)
+                else -> api.updateAvatar(body)
+            }.toDomain()
             refreshSignal.emit(Unit)
         }
 
@@ -110,11 +118,19 @@ class PixelfedAccountService(
     }
 
 
-    override fun getAccount(accountId: String, username: String) =
-        loadResource { api.getAccount(accountId).toDomain() }
+    override fun getAccount(accountId: String, username: String) = loadResource {
+        when (session.backendType.value) {
+            BackendType.MASTODON -> api.getMastodonAccount(accountId)
+            else -> api.getAccount(accountId)
+        }.toDomain()
+    }
 
-    override fun getAccountByUsername(username: String) =
-        loadResource { api.getAccountByUsername(username).toDomain() }
+    override fun getAccountByUsername(username: String) = loadResource {
+        when (session.backendType.value) {
+            BackendType.MASTODON -> api.getMastodonAccountByUsername(username)
+            else -> api.getAccountByUsername(username)
+        }.toDomain()
+    }
 
     override fun getRelationships(userIds: List<String>) = loadListResources {
         api.getRelationships(userIds).map { it.toDomain() }

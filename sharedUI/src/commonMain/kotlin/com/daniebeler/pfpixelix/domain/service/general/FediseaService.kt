@@ -25,7 +25,12 @@ class FediseaService(
     fun getOpenServers(
         search: String, backendType: BackendType, limit: Int
     ): Flow<Resource<FediseaServersResponse>> = loadResource {
-        val softwareName = if (backendType == BackendType.PIXELFED) "pixelfed" else "Vernissage"
+        val softwareName = when (backendType) {
+            BackendType.PIXELFED -> "pixelfed"
+            BackendType.VERNISSAGE -> "Vernissage"
+            BackendType.MASTODON -> "mastodon"
+            BackendType.SHARKEY -> "sharkey"
+        }
         api.getOpenServers(search, software = softwareName, size = limit)
     }
 }
