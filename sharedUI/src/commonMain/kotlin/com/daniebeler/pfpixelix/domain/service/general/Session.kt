@@ -5,9 +5,7 @@ import com.daniebeler.pfpixelix.domain.model.Credentials
 import com.daniebeler.pfpixelix.domain.service.capabilities.Capabilities
 import com.daniebeler.pfpixelix.domain.service.capabilities.MastodonCapabilities
 import com.daniebeler.pfpixelix.domain.service.capabilities.NoCapabilities
-import com.daniebeler.pfpixelix.domain.service.capabilities.PixelfedCapabilities
 import com.daniebeler.pfpixelix.domain.service.capabilities.SharkeyCapabilities
-import com.daniebeler.pfpixelix.domain.service.capabilities.VernissageCapabilities
 import io.ktor.client.call.HttpClientCall
 import io.ktor.client.plugins.Sender
 import io.ktor.client.request.HttpRequestBuilder
@@ -24,7 +22,7 @@ class Session {
     private val credentialsState = MutableStateFlow<Credentials?>(null)
     val credentials: StateFlow<Credentials?> = credentialsState.asStateFlow()
 
-    private val backendTypeState = MutableStateFlow(BackendType.PIXELFED)
+    private val backendTypeState = MutableStateFlow(BackendType.MASTODON)
     val backendType: StateFlow<BackendType> = backendTypeState.asStateFlow()
 
     private val capabilitiesSate = MutableStateFlow(NoCapabilities)
@@ -44,15 +42,11 @@ class Session {
 }
 
 enum class BackendType {
-    PIXELFED,
-    VERNISSAGE,
     MASTODON,
     SHARKEY
 }
 
 fun BackendType.toCapabilities(): Capabilities = when (this) {
-    BackendType.PIXELFED   -> PixelfedCapabilities
-    BackendType.VERNISSAGE -> VernissageCapabilities
-    BackendType.MASTODON   -> MastodonCapabilities
-    BackendType.SHARKEY    -> SharkeyCapabilities
+    BackendType.MASTODON -> MastodonCapabilities
+    BackendType.SHARKEY  -> SharkeyCapabilities
 }

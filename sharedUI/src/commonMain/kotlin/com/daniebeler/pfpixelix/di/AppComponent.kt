@@ -14,8 +14,6 @@ import com.daniebeler.pfpixelix.domain.repository.serializers.SavedSearchesSeria
 import com.daniebeler.pfpixelix.domain.repository.serializers.SessionStorageSerializer
 import com.daniebeler.pfpixelix.domain.repository.sharkey.SharkeyApi
 import com.daniebeler.pfpixelix.domain.repository.sharkey.createSharkeyApi
-import com.daniebeler.pfpixelix.domain.repository.vernissage.VernissageApi
-import com.daniebeler.pfpixelix.domain.repository.vernissage.createVernissageApi
 import com.daniebeler.pfpixelix.domain.service.file.FileService
 import com.daniebeler.pfpixelix.domain.service.general.AccountService
 import com.daniebeler.pfpixelix.domain.service.general.AccountServiceDelegate
@@ -46,7 +44,6 @@ import com.daniebeler.pfpixelix.domain.service.general.WidgetServiceDelegate
 import com.daniebeler.pfpixelix.domain.service.pixelfed.PixelfedAuthInterceptor
 import com.daniebeler.pfpixelix.domain.service.preferences.UserPreferences
 import com.daniebeler.pfpixelix.domain.service.sharkey.SharkeyAuthInterceptor
-import com.daniebeler.pfpixelix.domain.service.vernissage.VernissageAuthInterceptor
 import com.daniebeler.pfpixelix.ui.events.AccountIntentHandler
 import com.daniebeler.pfpixelix.ui.events.BackToTopTrigger
 import com.daniebeler.pfpixelix.ui.events.GlobalNavigator
@@ -159,9 +156,6 @@ abstract class AppComponent(
     @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION, AnnotationTarget.VALUE_PARAMETER)
     annotation class SharkeyClient
 
-    @Qualifier
-    @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION, AnnotationTarget.VALUE_PARAMETER)
-    annotation class VernissageClient
 
     @Qualifier
     @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION, AnnotationTarget.VALUE_PARAMETER)
@@ -176,7 +170,7 @@ abstract class AppComponent(
         sessionStorage: DataStore<SessionStorage>,
         globalNavigator: GlobalNavigator
     ): HttpClient {
-        val authInterceptor = PixelfedAuthInterceptor(session, json, sessionStorage, globalNavigator)
+        val authInterceptor = PixelfedAuthInterceptor(session)
 
         return HttpClient {
 
@@ -255,47 +249,6 @@ abstract class AppComponent(
             .build()
             .createSharkeyApi()
 
-    @Provides
-    @AppSingleton
-    @VernissageClient
-    fun provideVernissageHttpClient(
-        json: Json,
-        session: Session,
-        sessionStorage: DataStore<SessionStorage>,
-        globalNavigator: GlobalNavigator
-    ): HttpClient {
-        val authInterceptor = VernissageAuthInterceptor(session, json, sessionStorage, globalNavigator)
-
-        return HttpClient {
-
-            expectSuccess = true
-            install(ContentNegotiation) { json(json) }
-            install(Logging) {
-                logger = object : io.ktor.client.plugins.logging.Logger {
-                    override fun log(message: String) {
-                        Logger.v(tag = "Pixelix HttpClient") {
-                            message.lines().joinToString { "\n\t\t$it" }
-                        }
-                    }
-                }
-                level = LogLevel.NONE
-            }
-            install(HttpTimeout) {
-                requestTimeoutMillis = 60000
-                socketTimeoutMillis = 60000
-                connectTimeoutMillis = 60000
-            }
-        }.apply {
-            plugin(HttpSend).intercept { request ->
-                session.credentials.value?.let { creds ->
-                    if (request.url.host != "api.fedisea.surf" && request.url.host != "pixelfed.org") {
-                        request.url.set(host = Url(creds.serverUrl).host)
-                    }
-                }
-                with(authInterceptor) { intercept(request) }
-            }
-        }
-    }
 
     @Provides
     @AppSingleton
@@ -306,15 +259,6 @@ abstract class AppComponent(
         }
     }
 
-    @Provides
-    @AppSingleton
-    fun provideVernissageApi(@VernissageClient client: HttpClient): VernissageApi =
-        Ktorfit.Builder()
-            .converterFactories(CallConverterFactory())
-            .httpClient(client)
-            .baseUrl("https://err.or/")
-            .build()
-            .createVernissageApi()
 
     @Provides
     @AppSingleton

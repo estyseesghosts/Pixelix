@@ -1,4 +1,4 @@
-Pixelix is an open source client for the Fediverse photo sharing platforms Pixelfed and Vernissage.
+Pixelix is an open source client for the Fediverse platforms Mastodon and Sharkey.
 
  - Material Design
  - Multi-accounts support

@@ -1,1 +1,1 @@
-A mobile client for Pixelfed and Vernissage
+A mobile client for Mastodon and Sharkey

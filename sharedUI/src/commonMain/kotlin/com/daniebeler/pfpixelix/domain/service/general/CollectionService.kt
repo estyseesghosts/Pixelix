@@ -34,12 +34,10 @@ interface CollectionService {
 class CollectionServiceDelegate(
     private val session: Session,
     private val pixelfed: PixelfedCollectionService,
-    //private val vernissage: VernissageTimelineService
 ) : CollectionService {
 
     private val current: CollectionService
         get() = when (session.backendType) {
-            // BackendType.VERNISSAGE -> vernissage
             else -> pixelfed
         }
 

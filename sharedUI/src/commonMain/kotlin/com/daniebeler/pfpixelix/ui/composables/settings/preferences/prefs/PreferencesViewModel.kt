@@ -45,8 +45,7 @@ class PreferencesViewModel(
     }
 
     fun openDeleteAccountPage() {
-        val customUrl =
-            if (backendType == BackendType.PIXELFED) "settings/remove/request/permanent" else "account"
+        val customUrl = "account"
 
         authService.getCurrentSession()?.let {
             platform.openUrl(it.serverUrl + customUrl)
@@ -55,8 +54,6 @@ class PreferencesViewModel(
 }
 
 internal fun BackendType.moreSettingsPath() = when (this) {
-    BackendType.PIXELFED -> "settings/home"
-    BackendType.VERNISSAGE -> "account"
     BackendType.MASTODON -> "settings/profile"
     BackendType.SHARKEY -> "settings/profile"
 }

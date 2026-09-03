@@ -7,7 +7,6 @@ import com.daniebeler.pfpixelix.domain.model.request.MediaAttachmentMetadataRequ
 import com.daniebeler.pfpixelix.domain.model.request.NewPostRequest
 import com.daniebeler.pfpixelix.domain.service.pixelfed.PixelfedPostEditorService
 import com.daniebeler.pfpixelix.domain.service.utils.Resource
-import com.daniebeler.pfpixelix.domain.service.vernissage.VernissagePostEditorService
 import com.daniebeler.pfpixelix.utils.KmpUri
 import kotlinx.coroutines.flow.Flow
 import me.tatarka.inject.annotations.Inject
@@ -30,12 +29,10 @@ interface PostEditorService {
 class PostEditorServiceDelegate(
     private val session: Session,
     private val pixelfed: PixelfedPostEditorService,
-    private val vernissage: VernissagePostEditorService
 ) : PostEditorService {
 
     private val current: PostEditorService
         get() = when (session.backendType.value) {
-             BackendType.VERNISSAGE -> vernissage
             else -> pixelfed
         }
 

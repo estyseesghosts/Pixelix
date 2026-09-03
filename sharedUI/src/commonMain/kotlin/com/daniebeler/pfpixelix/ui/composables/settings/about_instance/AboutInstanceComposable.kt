@@ -28,7 +28,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.daniebeler.pfpixelix.di.injectViewModel
-import com.daniebeler.pfpixelix.domain.service.general.BackendType
 import com.daniebeler.pfpixelix.ui.composables.custom_account.AccountListItem
 import com.daniebeler.pfpixelix.ui.composables.states.ErrorComposable
 import com.daniebeler.pfpixelix.ui.composables.states.LoadingComposable
@@ -158,10 +157,8 @@ fun AboutInstanceComposable(
                         modifier = Modifier.padding(start = 12.dp, bottom = 8.dp)
                     )
 
-                    val privacyPath =
-                        if (viewModel.backendType == BackendType.PIXELFED) "/site/privacy" else "/privacy"
-                    val termsPath =
-                        if (viewModel.backendType == BackendType.PIXELFED) "/site/terms" else "/terms"
+                    val privacyPath = "/privacy"
+                    val termsPath = "/terms"
                     val domain =
                         DomainFormat.formatDomain(viewModel.instanceState.instance?.domain ?: "")
 

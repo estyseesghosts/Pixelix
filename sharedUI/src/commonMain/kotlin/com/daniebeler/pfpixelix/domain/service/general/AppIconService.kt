@@ -25,12 +25,10 @@ interface AppIconManager {
 class AppIconServiceDelegate(
     private val session: Session,
     private val pixelfed: PixelfedAppIconService,
-    //private val vernissage: VernissageTimelineService
 ) : AppIconService {
 
     private val current: AppIconService
         get() = when (session.backendType) {
-            // BackendType.VERNISSAGE -> vernissage
             else -> pixelfed
         }
     override val icons: List<DrawableResource> = current.icons

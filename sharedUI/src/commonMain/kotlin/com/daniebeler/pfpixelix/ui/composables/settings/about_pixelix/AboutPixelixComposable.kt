@@ -33,7 +33,6 @@ import androidx.navigation.NavController
 import com.daniebeler.pfpixelix.di.injectViewModel
 import com.daniebeler.pfpixelix.ui.composables.widgets.ButtonRowElement
 import com.daniebeler.pfpixelix.ui.composables.widgets.ScreenScaffold
-import com.daniebeler.pfpixelix.ui.navigation.Destination
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
@@ -45,7 +44,6 @@ import pixelix.app.generated.resources.developed_by
 import pixelix.app.generated.resources.mastodon_logo
 import pixelix.app.generated.resources.shield
 import pixelix.app.generated.resources.star
-import pixelix.app.generated.resources.vernissage_logo
 import pixelix.app.generated.resources.website
 
 @Composable
@@ -131,15 +129,6 @@ fun AboutPixelixComposable(
 
                 Row {
                     Image(
-                        painter = painterResource(Res.drawable.vernissage_logo),
-                        contentDescription = null,
-                        Modifier.width(32.dp).height(32.dp).clickable {
-                            navController.navigate(Destination.ProfileByUsername("hiebeler05@vernissage.photos"))
-                        })
-
-                    Spacer(modifier = Modifier.width(16.dp))
-
-                    Image(
                         painter = painterResource(Res.drawable.mastodon_logo),
                         contentDescription = null,
                         Modifier.width(32.dp).height(32.dp).clickable {
@@ -168,15 +157,6 @@ fun AboutPixelixComposable(
 
                 Row {
                     Image(
-                        painter = painterResource(Res.drawable.vernissage_logo),
-                        contentDescription = null,
-                        Modifier.width(32.dp).height(32.dp).clickable {
-                            navController.navigate(Destination.ProfileByUsername("daniebeler@vernissage.photos"))
-                        })
-
-                    Spacer(modifier = Modifier.width(16.dp))
-
-                    Image(
                         painter = painterResource(Res.drawable.mastodon_logo),
                         contentDescription = null,
                         Modifier.width(32.dp).height(32.dp).clickable {
@@ -204,13 +184,6 @@ fun AboutPixelixComposable(
                 Text(text = "Konstantin Tskhovrebov", fontWeight = FontWeight.Bold)
 
                 Row {
-//                    Image(
-//                        painter = painterResource(Res.drawable.pixelfed_logo),
-//                        contentDescription = null,
-//                        Modifier.width(32.dp).height(32.dp).clickable {
-//                            navController.navigate(Destination.ProfileByUsername("dagboek@pixey.org"))
-//                        })
-
                     Spacer(modifier = Modifier.width(16.dp))
 
                     Image(

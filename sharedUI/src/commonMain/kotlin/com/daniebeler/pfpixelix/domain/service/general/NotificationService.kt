@@ -6,7 +6,6 @@ import com.daniebeler.pfpixelix.domain.model.PaginatedResponse
 import com.daniebeler.pfpixelix.domain.service.pixelfed.PixelfedNotificationService
 import com.daniebeler.pfpixelix.domain.service.sharkey.SharkeyNotificationService
 import com.daniebeler.pfpixelix.domain.service.utils.Resource
-import com.daniebeler.pfpixelix.domain.service.vernissage.VernissageNotificationService
 import kotlinx.coroutines.flow.Flow
 import me.tatarka.inject.annotations.Inject
 
@@ -21,15 +20,13 @@ interface NotificationService {
 class NotificationServiceDelegate(
     private val session: Session,
     private val pixelfed: PixelfedNotificationService,
-    private val vernissage: VernissageNotificationService,
     private val sharkey: SharkeyNotificationService
 ) : NotificationService {
 
     private val current: NotificationService
         get() = when (session.backendType.value) {
-            BackendType.VERNISSAGE -> vernissage
             BackendType.SHARKEY -> sharkey
-            else -> pixelfed
+            BackendType.MASTODON -> pixelfed
         }
 
     override fun getNotifications(maxNotificationId: String?): Flow<Resource<PaginatedResponse<Notification>>> =

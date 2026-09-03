@@ -1,6 +1,5 @@
 package com.daniebeler.pfpixelix.domain.model.request
 
-import com.daniebeler.pfpixelix.domain.service.vernissage.model.request.VernissageMediaAttachmentMetadataRequest
 import com.daniebeler.pfpixelix.domain.model.License
 import com.daniebeler.pfpixelix.domain.service.pixelfed.model.PixelfedMediaAttachmentMetadataRequest
 import kotlin.time.Instant
@@ -59,31 +58,5 @@ data class FieldState<T>(
 fun MediaAttachmentMetadataRequest.toPixelfed(): PixelfedMediaAttachmentMetadataRequest {
     return PixelfedMediaAttachmentMetadataRequest(
         description = this.description ?: ""
-    )
-}
-
-fun MediaAttachmentMetadataRequest.toVernissage(): VernissageMediaAttachmentMetadataRequest {
-    return VernissageMediaAttachmentMetadataRequest(
-        id = this.id ?: "",
-        description = this.description,
-        make = this.make.valueIfIncluded,
-        model = this.model.valueIfIncluded,
-        lens = this.lens.valueIfIncluded,
-        createDate = this.createDate.valueIfIncluded.toString(),
-        focalLength = this.focalLength.valueIfIncluded,
-        focalLenIn35mmFilm = this.focalLenIn35mmFilm.valueIfIncluded,
-        fNumber = this.fNumber.valueIfIncluded,
-        exposureTime = this.exposureTime.valueIfIncluded,
-        photographicSensitivity = this.photographicSensitivity.valueIfIncluded,
-        software = this.software.valueIfIncluded,
-        film = this.film.valueIfIncluded,
-        chemistry = this.chemistry.valueIfIncluded,
-        scanner = this.scanner.valueIfIncluded,
-        flash = this.flash.valueIfIncluded,
-        locationId = this.locationId,
-        licenseId = this.license?.id,
-        blurhash = this.blurhash,
-        latitude = this.gpsData.value?.lat,
-        longitude = this.gpsData.value?.long
     )
 }

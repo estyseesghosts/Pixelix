@@ -16,7 +16,6 @@ import com.daniebeler.pfpixelix.domain.model.request.UserMuteRequest
 import com.daniebeler.pfpixelix.domain.repository.pixelfed.PixelfedApi
 import com.daniebeler.pfpixelix.domain.service.general.AccountService
 import com.daniebeler.pfpixelix.domain.service.general.AuthService
-import com.daniebeler.pfpixelix.domain.service.general.BackendType
 import com.daniebeler.pfpixelix.domain.service.general.CollectionService
 import com.daniebeler.pfpixelix.domain.service.general.PostService
 import com.daniebeler.pfpixelix.domain.service.general.Session
@@ -89,11 +88,6 @@ class OtherProfileViewModel(
         userId: String?, username: String?, refreshing: Boolean, navController: NavController
     ) {
         if (username == null) {
-            if (session.backendType.value == BackendType.VERNISSAGE) {
-                accountState =
-                    AccountState(error = "Vernissage requires username for loading profile")
-            }
-
             return
         }
         if (userId == null) {

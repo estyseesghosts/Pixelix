@@ -26,8 +26,6 @@ class FediseaService(
         search: String, backendType: BackendType, limit: Int
     ): Flow<Resource<FediseaServersResponse>> = loadResource {
         val softwareName = when (backendType) {
-            BackendType.PIXELFED -> "pixelfed"
-            BackendType.VERNISSAGE -> "Vernissage"
             BackendType.MASTODON -> "mastodon"
             BackendType.SHARKEY -> "sharkey"
         }

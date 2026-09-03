@@ -15,10 +15,8 @@ import com.daniebeler.pfpixelix.domain.service.pixelfed.model.toDomain
 import com.daniebeler.pfpixelix.domain.service.preferences.UserPreferences
 import com.daniebeler.pfpixelix.domain.service.utils.Resource
 import com.daniebeler.pfpixelix.domain.service.utils.loadListResources
-import com.daniebeler.pfpixelix.domain.service.utils.loadPagePaginatedListResources
 import com.daniebeler.pfpixelix.domain.service.utils.loadPaginatedListResources
 import com.daniebeler.pfpixelix.domain.service.utils.loadResource
-import com.daniebeler.pfpixelix.domain.service.vernissage.model.VernissagePagePaginatedResponse
 import com.daniebeler.pfpixelix.ui.composables.explore.trending.TrendingRange
 import kotlinx.coroutines.flow.Flow
 import me.tatarka.inject.annotations.Inject
@@ -105,31 +103,31 @@ class PixelfedExploreService(
     }
 
     override fun getCameras(page: Int, size: Int): Flow<Resource<PagePaginatedResponse<Camera>>> =
-        loadPagePaginatedListResources<Camera> {
-            VernissagePagePaginatedResponse(
+        loadResource {
+            PagePaginatedResponse(
                 data = emptyList(),
-                page = page ?: 1,
-                size = size ?: 10,
+                currentPage = page,
+                size = size,
                 total = 0
             )
         }
 
     override fun getLenses(page: Int, size: Int): Flow<Resource<PagePaginatedResponse<Lens>>> =
-        loadPagePaginatedListResources<Lens> {
-            VernissagePagePaginatedResponse(
+        loadResource {
+            PagePaginatedResponse(
                 data = emptyList(),
-                page = page ?: 1,
-                size = size ?: 10,
+                currentPage = page,
+                size = size,
                 total = 0
             )
         }
 
     override fun getFilms(page: Int, size: Int): Flow<Resource<PagePaginatedResponse<Film>>> =
-        loadPagePaginatedListResources<Film> {
-            VernissagePagePaginatedResponse(
+        loadResource {
+            PagePaginatedResponse(
                 data = emptyList(),
-                page = page ?: 1,
-                size = size ?: 10,
+                currentPage = page,
+                size = size,
                 total = 0
             )
         }

@@ -13,7 +13,6 @@ import com.daniebeler.pfpixelix.domain.model.request.UserBlockRequest
 import com.daniebeler.pfpixelix.domain.model.request.UserMuteRequest
 import com.daniebeler.pfpixelix.domain.service.pixelfed.PixelfedAccountService
 import com.daniebeler.pfpixelix.domain.service.sharkey.SharkeyAccountService
-import com.daniebeler.pfpixelix.domain.service.vernissage.VernissageAccountService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import me.tatarka.inject.annotations.Inject
@@ -68,15 +67,13 @@ interface AccountService {
 class AccountServiceDelegate(
     private val session: Session,
     private val pixelfed: PixelfedAccountService,
-    private val vernissage: VernissageAccountService,
     private val sharkey: SharkeyAccountService
 ) : AccountService {
 
     private val current: AccountService
         get() = when (session.backendType.value) {
-            BackendType.VERNISSAGE -> vernissage
             BackendType.SHARKEY -> sharkey
-            else -> pixelfed
+            BackendType.MASTODON -> pixelfed
         }
     override val refreshSignal: MutableSharedFlow<Unit> = current.refreshSignal
 

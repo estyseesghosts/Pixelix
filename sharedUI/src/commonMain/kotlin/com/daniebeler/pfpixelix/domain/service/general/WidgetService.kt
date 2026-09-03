@@ -6,7 +6,6 @@ import com.daniebeler.pfpixelix.domain.model.PaginatedResponse
 import com.daniebeler.pfpixelix.domain.model.Post
 import com.daniebeler.pfpixelix.domain.service.pixelfed.PixelfedWidgetService
 import com.daniebeler.pfpixelix.domain.service.utils.Resource
-import com.daniebeler.pfpixelix.domain.service.vernissage.VernissageWidgetService
 import kotlinx.coroutines.flow.Flow
 import me.tatarka.inject.annotations.Inject
 
@@ -21,12 +20,10 @@ interface WidgetService {
 class WidgetServiceDelegate(
     private val session: Session,
     private val pixelfed: PixelfedWidgetService,
-    private val vernissage: VernissageWidgetService
 ) : WidgetService {
 
     private val current: WidgetService
         get() = when (session.backendType.value) {
-            BackendType.VERNISSAGE -> vernissage
             else -> pixelfed
         }
 

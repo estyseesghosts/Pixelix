@@ -11,7 +11,6 @@ import com.daniebeler.pfpixelix.domain.repository.pixelfed.PixelfedApi
 import com.daniebeler.pfpixelix.domain.service.pixelfed.PixelfedPostService
 import com.daniebeler.pfpixelix.domain.service.sharkey.SharkeyPostService
 import com.daniebeler.pfpixelix.domain.service.utils.Resource
-import com.daniebeler.pfpixelix.domain.service.vernissage.VernissagePostService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import me.tatarka.inject.annotations.Inject
@@ -26,9 +25,7 @@ interface PostService {
     /**
      * Fetches a paginated list of posts belonging to a specific account.
      *
-     * @param identifier The account identifier. For **Vernissage**, this must be the account's
-     * **username** (e.g., "username"). For **Pixelfed**, this must be the
-     * unique **account ID** (e.g., "12345").
+     * @param identifier The account identifier.
      * @param maxPostId Optional ID cursor used to fetch the next page of results for pagination.
      * If null, fetches the most recent posts (first page).
      * @param limit The maximum number of posts to retrieve in a single network request.
@@ -165,15 +162,13 @@ fun List<ReplyNode>.updatePost(nodeId: String, transform: (Post) -> Post): List<
 class PostServiceDelegate(
     private val session: Session,
     private val pixelfed: PixelfedPostService,
-    private val vernissage: VernissagePostService,
     private val sharkey: SharkeyPostService
 ) : PostService {
 
     private val current: PostService
         get() = when (session.backendType.value) {
-            BackendType.VERNISSAGE -> vernissage
             BackendType.SHARKEY -> sharkey
-            else -> pixelfed
+            BackendType.MASTODON -> pixelfed
         }
 
     override fun getPostById(postId: String): Flow<Resource<Post>> = current.getPostById(postId)

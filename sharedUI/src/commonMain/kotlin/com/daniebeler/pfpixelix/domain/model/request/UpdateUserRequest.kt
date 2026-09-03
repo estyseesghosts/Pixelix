@@ -1,8 +1,6 @@
 package com.daniebeler.pfpixelix.domain.model.request
 
 import com.daniebeler.pfpixelix.domain.service.pixelfed.model.request.PixelfedUpdateUserRequest
-import com.daniebeler.pfpixelix.domain.service.vernissage.model.request.VernissageUpdateFieldRequest
-import com.daniebeler.pfpixelix.domain.service.vernissage.model.request.VernissageUpdateUserRequest
 
 data class UpdateUserRequest(
     val displayName: String? = null,
@@ -29,26 +27,5 @@ fun UpdateUserRequest.toPixelfed(): PixelfedUpdateUserRequest {
         note = this.note,
         website = this.website,
         locked = this.locked
-    )
-}
-
-fun UpdateFieldRequest.toVernissage(): VernissageUpdateFieldRequest {
-    return VernissageUpdateFieldRequest(
-        id = this.id,
-        key = this.key,
-        value = this.value,
-        valueHtml = this.valueHtml,
-        isVerified = this.isVerified
-    )
-}
-
-fun UpdateUserRequest.toVernissage(): VernissageUpdateUserRequest {
-    return VernissageUpdateUserRequest(
-        name = this.displayName,
-        bio = this.note,
-        manuallyApprovesFollowers = this.manuallyAcceptNewFollowers,
-        includeProfilePageInSearchEngines = this.includeProfilePageInSearchEngines,
-        includePublicPostsInSearchEngines = this.includePublicPostsInSearchEngines,
-        fields = this.fields.map { it.toVernissage() }
     )
 }

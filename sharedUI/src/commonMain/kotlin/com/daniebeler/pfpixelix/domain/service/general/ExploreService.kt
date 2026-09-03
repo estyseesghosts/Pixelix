@@ -18,7 +18,6 @@ import com.daniebeler.pfpixelix.domain.model.Tag
 import com.daniebeler.pfpixelix.domain.service.pixelfed.PixelfedExploreService
 import com.daniebeler.pfpixelix.domain.service.sharkey.SharkeyExploreService
 import com.daniebeler.pfpixelix.domain.service.utils.Resource
-import com.daniebeler.pfpixelix.domain.service.vernissage.VernissageExploreService
 import com.daniebeler.pfpixelix.ui.composables.explore.trending.TrendingRange
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -71,15 +70,13 @@ interface ExploreService {
 class ExploreServiceDelegate(
     private val session: Session,
     private val pixelfed: PixelfedExploreService,
-    private val vernissage: VernissageExploreService,
     private val sharkey: SharkeyExploreService
 ) : ExploreService {
 
     private val current: ExploreService
         get() = when (session.backendType.value) {
-            BackendType.VERNISSAGE -> vernissage
             BackendType.SHARKEY -> sharkey
-            else -> pixelfed
+            BackendType.MASTODON -> pixelfed
         }
 
     override fun getTrendingAccounts(range: TrendingRange, maxId: String?): Flow<Resource<PaginatedResponse<Account>>> = current.getTrendingAccounts(range, maxId)

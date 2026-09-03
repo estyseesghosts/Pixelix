@@ -4,9 +4,7 @@ import com.daniebeler.pfpixelix.di.AppSingleton
 import com.daniebeler.pfpixelix.domain.model.Credentials
 import com.daniebeler.pfpixelix.domain.model.SessionStorage
 import com.daniebeler.pfpixelix.domain.service.mastodon.MastodonAuthService
-import com.daniebeler.pfpixelix.domain.service.pixelfed.PixelfedAuthService
 import com.daniebeler.pfpixelix.domain.service.sharkey.SharkeyAuthService
-import com.daniebeler.pfpixelix.domain.service.vernissage.VernissageAuthService
 import io.ktor.http.Url
 import kotlinx.coroutines.flow.Flow
 import me.tatarka.inject.annotations.Inject
@@ -45,18 +43,14 @@ interface AuthService {
 @AppSingleton
 class AuthServiceDelegate(
     private val session: Session,
-    private val pixelfed: PixelfedAuthService,
-    private val vernissage: VernissageAuthService,
     private val mastodon: MastodonAuthService,
     private val sharkey: SharkeyAuthService
 ) : AuthService {
 
     private val current: AuthService
         get() = when (session.backendType.value) {
-            BackendType.VERNISSAGE -> vernissage
             BackendType.MASTODON -> mastodon
             BackendType.SHARKEY -> sharkey
-            else -> pixelfed
         }
     override val activeUser: Flow<String?> = current.activeUser
 

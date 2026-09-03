@@ -7,7 +7,6 @@ import com.daniebeler.pfpixelix.domain.repository.pixelfed.PixelfedApi
 import com.daniebeler.pfpixelix.domain.service.pixelfed.PixelfedTimelineService
 import com.daniebeler.pfpixelix.domain.service.sharkey.SharkeyTimelineService
 import com.daniebeler.pfpixelix.domain.service.utils.Resource
-import com.daniebeler.pfpixelix.domain.service.vernissage.VernissageTimelineService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import me.tatarka.inject.annotations.Inject
@@ -84,15 +83,13 @@ fun Flow<Resource<PaginatedResponse<Post>>>.filterTextPosts() = map { event ->
 class TimelineServiceDelegate(
     private val session: Session,
     private val pixelfed: PixelfedTimelineService,
-    private val vernissage: VernissageTimelineService,
     private val sharkey: SharkeyTimelineService
 ) : TimelineService {
 
     private val current: TimelineService
         get() = when (session.backendType.value) {
-            BackendType.VERNISSAGE -> vernissage
             BackendType.SHARKEY -> sharkey
-            else -> pixelfed
+            BackendType.MASTODON -> pixelfed
         }
 
     override fun getHomeTimeline(maxPostId: String?, enableReblogs: Boolean) =

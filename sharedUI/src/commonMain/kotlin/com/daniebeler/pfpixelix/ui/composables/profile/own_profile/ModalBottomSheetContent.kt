@@ -29,9 +29,9 @@ import pixelix.app.generated.resources.liked_posts
 import pixelix.app.generated.resources.muted_accounts
 import pixelix.app.generated.resources.blocked
 import pixelix.app.generated.resources.muted
-import pixelix.app.generated.resources.pixelfed_logo
+import pixelix.app.generated.resources.fediverse_logo
+import pixelix.app.generated.resources.mastodon_logo
 import pixelix.app.generated.resources.settings
-import pixelix.app.generated.resources.vernissage_logo
 
 @Composable
 fun ModalBottomSheetContent(
@@ -94,8 +94,8 @@ fun ModalBottomSheetContent(
         HorizontalDivider(Modifier.padding(12.dp))
 
         ButtonRowElement(
-            image = if (backendType == BackendType.PIXELFED) imageResource(Res.drawable.pixelfed_logo) else imageResource(
-                Res.drawable.vernissage_logo
+            image = if (backendType == BackendType.MASTODON) imageResource(Res.drawable.mastodon_logo) else imageResource(
+                Res.drawable.fediverse_logo
             ),
             roundedImage = false,
             text = stringResource(Res.string.about_x, instanceDomain),

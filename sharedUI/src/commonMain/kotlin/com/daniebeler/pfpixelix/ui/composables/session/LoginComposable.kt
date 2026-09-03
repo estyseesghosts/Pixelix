@@ -75,13 +75,9 @@ import pixelix.app.generated.resources.fediverse_logo
 import pixelix.app.generated.resources.i_don_t_have_an_account
 import pixelix.app.generated.resources.mastodon_full_logo_black
 import pixelix.app.generated.resources.mastodon_full_logo_white
-import pixelix.app.generated.resources.pixelfed_full_logo_black
-import pixelix.app.generated.resources.pixelfed_full_logo_white
 import pixelix.app.generated.resources.pixelix_logo_black_xxl
 import pixelix.app.generated.resources.pixelix_logo_white_xxl
 import pixelix.app.generated.resources.server_url
-import pixelix.app.generated.resources.vernissage_full_logo_black
-import pixelix.app.generated.resources.vernissage_full_logo_white
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -371,22 +367,6 @@ fun PlatformSelectionLayout(
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = 4.dp, bottom = 24.dp)
         )
-
-        PlatformCard(
-            title = "Pixelfed",
-            description = "The classic fediverse photo app. Share your daily moments, create photo albums, and connect privately with direct messages.",
-            image = if (dark) Res.drawable.pixelfed_full_logo_white else Res.drawable.pixelfed_full_logo_black,
-            onClick = { onPlatformSelected(BackendType.PIXELFED) })
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        PlatformCard(
-            title = "Vernissage",
-            description = "Built for photographers first. Publish and explore high-quality art with full EXIF metadata, HDR support, and account verification.",
-            image = if (dark) Res.drawable.vernissage_full_logo_white else Res.drawable.vernissage_full_logo_black,
-            onClick = { onPlatformSelected(BackendType.VERNISSAGE) })
-
-        Spacer(modifier = Modifier.height(16.dp))
 
         PlatformCard(
             title = "Mastodon",

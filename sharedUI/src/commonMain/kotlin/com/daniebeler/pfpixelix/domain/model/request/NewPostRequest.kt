@@ -2,9 +2,7 @@ package com.daniebeler.pfpixelix.domain.model.request
 
 import com.daniebeler.pfpixelix.domain.model.Visibility
 import com.daniebeler.pfpixelix.domain.model.toPixelfed
-import com.daniebeler.pfpixelix.domain.model.toVernissage
 import com.daniebeler.pfpixelix.domain.service.pixelfed.model.request.PixelfedNewPostRequest
-import com.daniebeler.pfpixelix.domain.service.vernissage.model.VernissageNewPostRequest
 
 data class NewPostRequest(
     val note: String,
@@ -26,17 +24,5 @@ fun NewPostRequest.toPixelfed(): PixelfedNewPostRequest {
         spoilerText = this.contentWarning,
         placeId = this.placeId,
         commentsDisabled = this.commentsDisabled
-    )
-}
-
-fun NewPostRequest.toVernissage(): VernissageNewPostRequest {
-    return VernissageNewPostRequest(
-        note = this.note,
-        mediaIds = this.mediaIds,
-        sensitive = this.sensitive,
-        contentWarning = this.contentWarning,
-        visibility = this.visibility.toVernissage(),
-        commentsDisabled = this.commentsDisabled,
-        categoryId = this.categoryId
     )
 }

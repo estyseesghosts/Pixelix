@@ -75,7 +75,7 @@ class LoginViewModel(
     }
 
     fun auth() {
-        session.setBackendType(selectedPlatform ?: BackendType.PIXELFED)
+        session.setBackendType(selectedPlatform ?: BackendType.MASTODON)
         viewModelScope.launch {
             try {
                 isLoading = true
@@ -91,11 +91,9 @@ class LoginViewModel(
 
     fun showAvailableServers() {
         val url = when (selectedPlatform) {
-            BackendType.PIXELFED -> "https://pixelfed.org/servers"
-            BackendType.VERNISSAGE -> "https://joinvernissage.org/servers"
             BackendType.MASTODON -> "https://joinmastodon.org/servers"
             BackendType.SHARKEY -> "https://joinsharkey.org/"
-            null -> "https://pixelfed.org/servers"
+            null -> "https://joinmastodon.org/servers"
         }
         platform.openUrl(url)
     }

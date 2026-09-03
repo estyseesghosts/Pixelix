@@ -1,8 +1,8 @@
-# Pixelix - A mobile client for Pixelfed and Vernissage
+# Pixelix - A mobile client for Mastodon and Sharkey
 
 ![Preview of App](https://github.com/ghostbyte-dev/pixelix/blob/5687e50de0f986d5d043d58d2518740c3ef0e0c6/assets/pixelix_screenshots.png)
 
-Pixelix is an Android and iOS client for [Pixelfed](https://pixelfed.org/) and [Vernissage](https://joinvernissage.org/).
+Pixelix is an Android and iOS client for [Mastodon](https://joinmastodon.org/) and [Sharkey](https://joinsharkey.org/).
 
 Built with Compose Multiplatform, Pixelix provides a modern and native experience across Android and iOS for browsing, posting, and interacting on the Fediverse.
 

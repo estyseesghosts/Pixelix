@@ -61,7 +61,7 @@ object SessionStorageSerializer : OkioSerializer<SessionStorage> {
                         clientId = "",
                         clientSecret = "",
                         createdAt = "",
-                        backendType = BackendType.PIXELFED
+                        backendType = BackendType.MASTODON
                     ))
                 }
                 val oldDataWithNewCredentials = OldSessionStorageWithNewCredentials(

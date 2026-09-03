@@ -32,12 +32,10 @@ class DirectMessagesServiceDelegate(
     private val session: Session,
     private val pixelfed: PixelfedDirectMessagesService,
     private val sharkey: SharkeyDirectMessagesService,
-    //private val vernissage: VernissageTimelineService
 ) : DirectMessagesService {
 
     private val current: DirectMessagesService
         get() = when (session.backendType.value) {
-            // BackendType.VERNISSAGE -> vernissage
             BackendType.SHARKEY -> sharkey
             else -> pixelfed
         }
