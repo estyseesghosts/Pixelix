@@ -19,4 +19,10 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+-keep class com.github.awxkee.** { *; }
+-keep class io.github.awxkee.** { *; }
+-dontwarn com.github.awxkee.**
+-dontwarn io.github.awxkee.**
+
 -dontobfuscate
