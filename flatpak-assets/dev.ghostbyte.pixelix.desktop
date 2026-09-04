@@ -1,10 +1,10 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=Pixelix
+Name=PLACEHOLDER
 Comment=Kotlin Multiplatform Pixel App
 Exec=pixelix %u
-Icon=dev.ghostbyte.pixelix
+Icon=foxtails.taeda
 Terminal=false
 Categories=Graphics;Utility;
-MimeType=x-scheme-handler/dev.ghostbyte.pixelix;
+MimeType=x-scheme-handler/foxtails.taeda;

@@ -1,0 +1,284 @@
+package foxtails.taeda.ui.composables.custom_account
+
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItemColors
+import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SegmentedListItem
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import coil3.compose.AsyncImage
+import foxtails.taeda.di.injectViewModel
+import foxtails.taeda.domain.model.Account
+import foxtails.taeda.domain.model.Relationship
+import foxtails.taeda.ui.composables.widgets.FollowButton
+import foxtails.taeda.ui.navigation.Destination
+import foxtails.taeda.utils.StringFormat
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.vectorResource
+import foxtails.taeda.app.generated.resources.Res
+import foxtails.taeda.app.generated.resources.close
+import foxtails.taeda.app.generated.resources.default_avatar
+import foxtails.taeda.app.generated.resources.follower
+import foxtails.taeda.app.generated.resources.trash
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun AccountListItem(
+    account: Account,
+    relationship: Relationship?,
+    navController: NavController,
+    index: Int,
+    count: Int,
+    showFollowers: Boolean = true,
+    onClick: () -> Unit = {},
+    removeSavedSearch: (() -> Unit)? = null,
+    colors: ListItemColors = ListItemDefaults.segmentedColors(
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+    ),
+    viewModel: CustomAccountViewModel = injectViewModel(key = "custom-account" + account.id) { customAccountViewModel }
+) {
+    SegmentedListItem(
+        onClick = {
+            onClick()
+            navController.navigate(Destination.Profile(account.id, account.username))
+        },
+        shapes = ListItemDefaults.segmentedShapes(index = index, count = count),
+        modifier = Modifier.fillMaxWidth().padding(vertical = 1.dp),
+        colors = colors,
+        leadingContent = {
+            AsyncImage(
+                model = account.avatar,
+                error = painterResource(Res.drawable.default_avatar),
+                contentDescription = null,
+                modifier = Modifier.height(46.dp).width(46.dp).clip(CircleShape)
+            )
+        },
+        trailingContent = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                FollowButton(
+                    firstLoaded = relationship != null,
+                    isLoading = viewModel.relationshipState.isLoading,
+                    isFollowing = if (viewModel.gotUpdatedRelationship) {
+                        viewModel.relationshipState.accountRelationship?.following ?: false
+                    } else {
+                        relationship?.following ?: false
+                    },
+                    onFollowClick = { viewModel.followAccount(account.id, account.username) },
+                    onUnFollowClick = { viewModel.unfollowAccount(account.id, account.username) },
+                    iconButton = true
+                )
+
+                if (removeSavedSearch != null) {
+                    IconButton(
+                        onClick = removeSavedSearch, modifier = Modifier.height(22.dp).width(22.dp)
+                    ) {
+                        Icon(
+                            imageVector = vectorResource(Res.drawable.close),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            }
+        },
+        supportingContent = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = account.shortUsername,
+                    fontSize = 12.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                val domain = account.url.substringAfter("https://").substringBefore("/")
+                Text(
+                    text = " \u2022 $domain",
+                    color = MaterialTheme.colorScheme.secondary,
+                    fontSize = 12.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        },
+        content = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = account.displayname ?: account.username,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                if (showFollowers && account.displayname != null) {
+                    Text(
+                        text = " \u2022 ${StringFormat.groupDigits(account.followersCount)} ${
+                            pluralStringResource(Res.plurals.follower, account.followersCount)
+                        }",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.primary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+        })
+}
+
+/**
+ * Clickable account row with navigation and optional follow button.
+ */
+@Composable
+fun CustomAccount(
+    account: Account,
+    relationship: Relationship?,
+    navController: NavController,
+    showFollowers: Boolean = true,
+    onClick: () -> Unit = {},
+    removeSavedSearch: (() -> Unit)? = null,
+    viewModel: CustomAccountViewModel = injectViewModel(key = "custom-account" + account.id) { customAccountViewModel }
+) {
+    AccountRow(
+        account = account, showFollowers = showFollowers, modifier = Modifier.clickable {
+            onClick()
+            navController.navigate(Destination.Profile(account.id, account.username))
+        }) {
+        FollowButton(
+            firstLoaded = relationship != null,
+            isLoading = viewModel.relationshipState.isLoading,
+            isFollowing = if (viewModel.gotUpdatedRelationship) {
+                viewModel.relationshipState.accountRelationship?.following ?: false
+            } else {
+                relationship?.following ?: false
+            },
+            onFollowClick = { viewModel.followAccount(account.id, account.username) },
+            onUnFollowClick = { viewModel.unfollowAccount(account.id, account.username) },
+            iconButton = true
+        )
+
+        if (removeSavedSearch != null) {
+            IconButton(
+                onClick = removeSavedSearch, modifier = Modifier.height(22.dp).width(22.dp)
+            ) {
+                Icon(
+                    imageVector = vectorResource(Res.drawable.close),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Non-clickable account row for display-only contexts (e.g. account switcher, trending).
+ */
+@Composable
+fun CustomAccount(
+    account: Account,
+    showFollowers: Boolean = true,
+    logoutButton: Boolean = false,
+    logout: () -> Unit = {}
+) {
+    AccountRow(
+        account = account, showFollowers = showFollowers
+    ) {
+        if (logoutButton) {
+            IconButton(
+                onClick = logout, modifier = Modifier.height(36.dp).width(36.dp)
+            ) {
+                Icon(
+                    imageVector = vectorResource(Res.drawable.trash),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AccountRow(
+    account: Account,
+    showFollowers: Boolean,
+    modifier: Modifier = Modifier,
+    trailingContent: @Composable () -> Unit = {}
+) {
+    Row(
+        modifier = modifier.padding(horizontal = 12.dp, vertical = 8.dp).fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        AsyncImage(
+            model = account.avatar,
+            error = painterResource(Res.drawable.default_avatar),
+            contentDescription = null,
+            modifier = Modifier.height(46.dp).width(46.dp).clip(CircleShape)
+        )
+
+        Spacer(modifier = Modifier.width(10.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+            if (account.displayname != null) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = account.displayname,
+                        lineHeight = 8.sp,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    if (showFollowers) {
+                        Text(
+                            text = " \u2022 ${StringFormat.groupDigits(account.followersCount)} ${
+                                pluralStringResource(Res.plurals.follower, account.followersCount)
+                            }",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.primary,
+                            lineHeight = 8.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+            }
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                val username = account.username.substringBefore("@")
+                Text(
+                    text = username,
+                    fontSize = 12.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                val domain = account.url.substringAfter("https://").substringBefore("/")
+                Text(
+                    text = " \u2022 $domain",
+                    color = MaterialTheme.colorScheme.secondary,
+                    fontSize = 12.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+
+        trailingContent()
+    }
+}

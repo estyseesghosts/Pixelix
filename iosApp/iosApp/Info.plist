@@ -9,7 +9,7 @@
 		<dict>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>dev.ghostbyte.pixelix</string>
+				<string>foxtails.taeda</string>
 			</array>
 		</dict>
 	</array>

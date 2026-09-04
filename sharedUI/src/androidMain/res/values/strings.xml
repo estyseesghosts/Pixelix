@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">Pixelix</string>
+    <string name="app_name" translatable="false">PLACEHOLDER</string>
     <string name="notifications">Notifications</string>
     <string name="liked_your_post">liked your post</string>
     <string name="mentioned_you">mentioned you</string>

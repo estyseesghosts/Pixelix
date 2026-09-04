@@ -1,3 +1,3 @@
-import com.daniebeler.pfpixelix.webApp
+import foxtails.taeda.webApp
 
 fun main() = webApp()

@@ -1,0 +1,159 @@
+package foxtails.taeda.domain.service.mastodon
+
+import androidx.datastore.core.DataStore
+import foxtails.taeda.di.AppSingleton
+import foxtails.taeda.domain.model.Credentials
+import foxtails.taeda.domain.model.SessionStorage
+import foxtails.taeda.domain.repository.mastodon.MastodonAuthApi.Companion.createMastodonAuthApi
+import foxtails.taeda.domain.service.general.AuthService
+import foxtails.taeda.domain.service.general.AuthService.Companion.clientName
+import foxtails.taeda.domain.service.general.AuthService.Companion.grantType
+import foxtails.taeda.domain.service.general.BackendType
+import foxtails.taeda.domain.service.general.Session
+import foxtails.taeda.domain.service.platform.Platform
+import foxtails.taeda.domain.service.platform.redirectUrl
+import foxtails.taeda.domain.service.search.SavedSearchesService
+import foxtails.taeda.ui.events.SystemUrlHandler
+import io.ktor.http.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.serialization.json.Json
+import me.tatarka.inject.annotations.Inject
+
+@Inject
+@AppSingleton
+class MastodonAuthService(
+    private val urlHandler: SystemUrlHandler,
+    private val session: Session,
+    private val sessionStorage: DataStore<SessionStorage>,
+    private val savedSearchesService: SavedSearchesService,
+    private val json: Json,
+    private val platform: Platform
+) : AuthService {
+
+    companion object {
+        private const val SCOPES = "read write follow push"
+    }
+
+    override val activeUser: Flow<String?> = session.credentials.map { it?.accountId }
+
+    override suspend fun auth(host: String) {
+        val serverUrl = getServerUrl(host)
+        val api = createMastodonAuthApi(serverUrl, json)
+        val authData = api.getAuthData(clientName, platform.redirectUrl, SCOPES)
+
+        val authUrl = URLBuilder("${serverUrl}oauth/authorize").apply {
+            parameters.apply {
+                append("response_type", "code")
+                append("redirect_uri", platform.redirectUrl)
+                append("client_id", authData.clientId)
+                append("scope", SCOPES)
+            }
+        }.build()
+
+        urlHandler.isAuthInProgress = true
+        platform.openUrl(authUrl.toString())
+        val redirectString = urlHandler.redirects.first()
+        platform.dismissBrowser()
+
+        if (redirectString == "CANCELLED") {
+            error("User canceled the authentication flow.")
+        }
+        val redirect = Url(redirectString)
+        val code = redirect.parameters["code"] ?: error("Redirect doesn't have a code")
+
+        val token = api.getToken(
+            authData.clientId,
+            authData.clientSecret,
+            code,
+            platform.redirectUrl,
+            grantType
+        )
+
+        val accountDto = api.verify("Bearer ${token.accessToken}")
+        val account = accountDto.toDomain()
+        val newCred = Credentials(
+            accountId = requireNotNull(account.id),
+            username = requireNotNull(account.username),
+            displayName = account.displayname ?: account.username,
+            avatar = account.avatar ?: "",
+            serverUrl = serverUrl.toString(),
+            token = token.accessToken,
+            refreshToken = "",
+            clientId = authData.clientId,
+            clientSecret = authData.clientSecret,
+            createdAt = token.createdAt,
+            backendType = BackendType.MASTODON
+        )
+        updateSession(newCred)
+    }
+
+    private suspend fun updateSession(newCred: Credentials) {
+        val targetKey = newCred.key()
+        sessionStorage.updateData { data ->
+            data.copy(
+                sessions = data.sessions + (targetKey to newCred),
+                activeKey = targetKey
+            )
+        }
+        session.setCredentials(newCred)
+    }
+
+    override suspend fun openSessionIfExist(key: String?) {
+        var resolvedCredentials: Credentials? = null
+        sessionStorage.updateData { data ->
+            val cred = if (key == null) {
+                data.getActiveSession()
+            } else {
+                data.sessions[key]
+            }
+            resolvedCredentials = cred
+            if (cred != null) {
+                data.copy(activeKey = cred.key())
+            } else {
+                data
+            }
+        }
+        session.setCredentials(resolvedCredentials)
+    }
+
+    override suspend fun deleteSession(keyParam: String?) {
+        sessionStorage.updateData { data ->
+            val key = keyParam ?: data.activeKey
+            val newSessions = data.sessions.filter { it.key != key }
+            val newId = if (data.activeKey == key) {
+                newSessions.values.firstOrNull()?.key()
+            } else {
+                data.activeKey
+            }
+            data.copy(sessions = newSessions, activeKey = newId)
+        }
+        if (keyParam == null) {
+            savedSearchesService.clearSavedSearches()
+            openSessionIfExist()
+        }
+    }
+
+    override suspend fun getAvailableSessions(): SessionStorage {
+        return sessionStorage.data.first()
+    }
+
+    override suspend fun updateSessionAvatar(accountId: String, avatarUrl: String) {
+        sessionStorage.updateData { data ->
+            val updatedSessions = data.sessions.mapValues { (_, credentials) ->
+                if (credentials.accountId == accountId) {
+                    credentials.copy(avatar = avatarUrl)
+                } else {
+                    credentials
+                }
+            }
+            data.copy(sessions = updatedSessions)
+        }
+        openSessionIfExist()
+    }
+
+    override fun getCurrentSession(): Credentials? {
+        return session.credentials.value
+    }
+}

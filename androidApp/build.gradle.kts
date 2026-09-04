@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.daniebeler.pfpixelix"
+    namespace = "foxtails.taeda"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.daniebeler.pfpixelix"
+        applicationId = "foxtails.taeda"
         minSdk = 26
         targetSdk = 37
         versionCode = 48

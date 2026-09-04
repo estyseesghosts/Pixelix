@@ -1,0 +1,72 @@
+package foxtails.taeda.ui.composables.settings.preferences.prefs.prefs
+
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.tooling.preview.Preview
+import foxtails.taeda.ui.composables.settings.preferences.prefs.basic.SettingPref
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
+import foxtails.taeda.app.generated.resources.Res
+import foxtails.taeda.app.generated.resources.are_you_sure_you_want_to_log_out
+import foxtails.taeda.app.generated.resources.cancel
+import foxtails.taeda.app.generated.resources.logout
+import foxtails.taeda.app.generated.resources.logout_questionmark
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun LogoutPref(logout: () -> Unit) {
+    val showAlert = remember { mutableStateOf(false) }
+
+    LogoutAlert(showAlert, logout)
+
+    SettingPref(
+        icon = Res.drawable.logout,
+        title = stringResource(Res.string.logout),
+        trailingContent = null,
+        onClick = { showAlert.value = true },
+        shapes = ListItemDefaults.segmentedShapes(index = 2, count = 4),
+    )
+}
+
+@Composable
+fun LogoutAlert(show: MutableState<Boolean>, logout: () -> Unit) {
+    if (show.value) {
+        AlertDialog(title = {
+            Text(text = stringResource(Res.string.logout_questionmark))
+        }, text = {
+            Text(text = stringResource(Res.string.are_you_sure_you_want_to_log_out))
+        }, onDismissRequest = {
+            show.value = false
+        }, confirmButton = {
+            TextButton(onClick = {
+                CoroutineScope(Dispatchers.Default).launch {
+                    logout()
+                }
+            }) {
+                Text(stringResource(Res.string.logout))
+            }
+        }, dismissButton = {
+            TextButton(onClick = {
+                show.value = false
+            }) {
+                Text(stringResource(Res.string.cancel))
+            }
+        })
+    }
+}
+
+@Preview
+@Composable
+private fun LogoutAlertPreview() {
+    val showAlert = remember { mutableStateOf(true) }
+    LogoutAlert(show = showAlert) { }
+}

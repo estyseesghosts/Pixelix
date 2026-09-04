@@ -1,7 +1,7 @@
-package com.daniebeler.pfpixelix
+package foxtails.taeda
 
-import com.daniebeler.pfpixelix.domain.service.general.BackendType
-import com.daniebeler.pfpixelix.ui.composables.settings.preferences.prefs.moreSettingsPath
+import foxtails.taeda.domain.service.general.BackendType
+import foxtails.taeda.ui.composables.settings.preferences.prefs.moreSettingsPath
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

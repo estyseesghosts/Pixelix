@@ -1,0 +1,71 @@
+package foxtails.taeda.ui.composables.settings.preferences.prefs.prefs
+
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.ListItemDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import foxtails.taeda.di.LocalAppComponent
+import foxtails.taeda.ui.composables.settings.preferences.basic.ExpandOptionsPref
+import foxtails.taeda.ui.composables.settings.preferences.basic.ValueOption
+import foxtails.taeda.ui.composables.settings.preferences.basic.imageVectorIconBlock
+import foxtails.taeda.ui.composables.settings.preferences.basic.radioButtonBlock
+import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.vectorResource
+import foxtails.taeda.app.generated.resources.Res
+import foxtails.taeda.app.generated.resources.default_timeline_tab
+import foxtails.taeda.app.generated.resources.home
+import foxtails.taeda.app.generated.resources.house
+import foxtails.taeda.app.generated.resources.local
+import foxtails.taeda.app.generated.resources.local_timeline
+import foxtails.taeda.app.generated.resources.timeline
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun DefaultHomeTab() {
+    val pref = LocalAppComponent.current.preferences
+    val defaultHomeTab by pref.defaultHomeTabFlow.collectAsState(pref.defaultHomeTab)
+    val selectedHomeTab = defaultHomeTab.coerceIn(0, 1)
+
+    val onOptionClick = { mode: Int ->
+        pref.defaultHomeTab = mode
+    }
+
+    val visibilityDesc = when (selectedHomeTab) {
+        0 -> stringResource(Res.string.home)
+        1 -> stringResource(Res.string.local)
+        else -> ""
+    }
+
+    val openCount = 7
+    ExpandOptionsPref(
+        leadingIcon = Res.drawable.timeline,
+        title = stringResource(Res.string.default_timeline_tab),
+        desc = visibilityDesc,
+        index = 2,
+        count = 5
+    ) {
+        ValueOption(
+            shapes = ListItemDefaults.segmentedShapes(index = 3, count = openCount),
+            leadingIcon = imageVectorIconBlock(
+                imageVector = vectorResource(Res.drawable.house),
+                contentDescription = stringResource(Res.string.home)
+            ),
+            title = stringResource(Res.string.home),
+            trailingContent = radioButtonBlock(selectedHomeTab == 0),
+            value = 0,
+            onOptionClick = onOptionClick,
+        )
+        ValueOption(
+            shapes = ListItemDefaults.segmentedShapes(index = 4, count = openCount),
+            leadingIcon = imageVectorIconBlock(
+                imageVector = vectorResource(Res.drawable.local_timeline),
+                contentDescription = stringResource(Res.string.local)
+            ),
+            title = stringResource(Res.string.local),
+            trailingContent = radioButtonBlock(selectedHomeTab == 1),
+            value = 1,
+            onOptionClick = onOptionClick,
+        )
+    }
+}

@@ -1,14 +1,14 @@
-package com.daniebeler.pfpixelix
+package foxtails.taeda
 
-import com.daniebeler.pfpixelix.domain.model.Account
-import com.daniebeler.pfpixelix.domain.model.MediaAttachment
-import com.daniebeler.pfpixelix.domain.model.PaginatedResponse
-import com.daniebeler.pfpixelix.domain.model.Post
-import com.daniebeler.pfpixelix.domain.service.general.filterTextPosts
-import com.daniebeler.pfpixelix.domain.service.pixelfed.model.PixelfedOriginalDto
-import com.daniebeler.pfpixelix.domain.service.utils.Resource
-import com.daniebeler.pfpixelix.ui.composables.profile.ViewEnum
-import com.daniebeler.pfpixelix.ui.composables.profile.forPresentation
+import foxtails.taeda.domain.model.Account
+import foxtails.taeda.domain.model.MediaAttachment
+import foxtails.taeda.domain.model.PaginatedResponse
+import foxtails.taeda.domain.model.Post
+import foxtails.taeda.domain.service.general.filterTextPosts
+import foxtails.taeda.domain.service.pixelfed.model.PixelfedOriginalDto
+import foxtails.taeda.domain.service.utils.Resource
+import foxtails.taeda.ui.composables.profile.ViewEnum
+import foxtails.taeda.ui.composables.profile.forPresentation
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
@@ -86,7 +86,7 @@ class PostFeedFilteringTest {
         mentions = emptyList(),
         location = null,
         likedBy = null,
-        visibility = com.daniebeler.pfpixelix.domain.model.Visibility.PUBLIC,
+        visibility = foxtails.taeda.domain.model.Visibility.PUBLIC,
         inReplyToId = null,
         reblogCount = 0,
         emojis = emptyList(),

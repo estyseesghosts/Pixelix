@@ -1,0 +1,116 @@
+package foxtails.taeda.ui.composables.profile.own_profile
+
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import foxtails.taeda.domain.service.general.BackendType
+import foxtails.taeda.ui.composables.widgets.ButtonRowElement
+import foxtails.taeda.ui.navigation.Destination
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.imageResource
+import org.jetbrains.compose.resources.stringResource
+import foxtails.taeda.app.generated.resources.Res
+import foxtails.taeda.app.generated.resources.about_pixelix
+import foxtails.taeda.app.generated.resources.about_x
+import foxtails.taeda.app.generated.resources.blocked_accounts
+import foxtails.taeda.app.generated.resources.bookmark
+import foxtails.taeda.app.generated.resources.bookmarked_posts
+import foxtails.taeda.app.generated.resources.followed_hashtags
+import foxtails.taeda.app.generated.resources.hash
+import foxtails.taeda.app.generated.resources.heart
+import foxtails.taeda.app.generated.resources.liked_posts
+import foxtails.taeda.app.generated.resources.muted_accounts
+import foxtails.taeda.app.generated.resources.blocked
+import foxtails.taeda.app.generated.resources.muted
+import foxtails.taeda.app.generated.resources.fediverse_logo
+import foxtails.taeda.app.generated.resources.mastodon_logo
+import foxtails.taeda.app.generated.resources.settings
+
+@Composable
+fun ModalBottomSheetContent(
+    navController: NavController,
+    instanceDomain: String,
+    appIcon: DrawableResource,
+    backendType: BackendType,
+    closeBottomSheet: () -> Unit,
+    openPreferencesDrawer: () -> Unit
+) {
+    Column(
+        Modifier.fillMaxWidth().verticalScroll(state = rememberScrollState())
+            .padding(bottom = 12.dp)
+    ) {
+
+        ButtonRowElement(
+            icon = Res.drawable.settings, text = stringResource(Res.string.settings), onClick = {
+                closeBottomSheet()
+                openPreferencesDrawer()
+            })
+
+        HorizontalDivider(Modifier.padding(12.dp))
+
+        ButtonRowElement(
+            icon = Res.drawable.heart, text = stringResource(Res.string.liked_posts), onClick = {
+                closeBottomSheet()
+                navController.navigate(Destination.LikedPosts)
+            })
+
+        ButtonRowElement(
+            icon = Res.drawable.bookmark,
+            text = stringResource(Res.string.bookmarked_posts),
+            onClick = {
+                closeBottomSheet()
+                navController.navigate(Destination.BookmarkedPosts)
+            })
+
+        ButtonRowElement(
+            icon = Res.drawable.hash,
+            text = stringResource(Res.string.followed_hashtags),
+            onClick = {
+                closeBottomSheet()
+                navController.navigate(Destination.FollowedHashtags)
+            })
+
+        ButtonRowElement(
+            icon = Res.drawable.muted, text = stringResource(Res.string.muted_accounts), onClick = {
+                closeBottomSheet()
+                navController.navigate(Destination.MutedAccounts)
+            })
+
+        ButtonRowElement(
+            icon = Res.drawable.blocked,
+            text = stringResource(Res.string.blocked_accounts),
+            onClick = {
+                closeBottomSheet()
+                navController.navigate(Destination.BlockedAccounts)
+            })
+
+        HorizontalDivider(Modifier.padding(12.dp))
+
+        ButtonRowElement(
+            image = if (backendType == BackendType.MASTODON) imageResource(Res.drawable.mastodon_logo) else imageResource(
+                Res.drawable.fediverse_logo
+            ),
+            roundedImage = false,
+            text = stringResource(Res.string.about_x, instanceDomain),
+            onClick = {
+                closeBottomSheet()
+                navController.navigate(Destination.AboutInstance)
+            })
+
+        ButtonRowElement(
+            image = imageResource(appIcon),
+            text = stringResource(Res.string.about_pixelix),
+            onClick = {
+                closeBottomSheet()
+                navController.navigate(Destination.AboutPlaceholder)
+            })
+
+    }
+}
