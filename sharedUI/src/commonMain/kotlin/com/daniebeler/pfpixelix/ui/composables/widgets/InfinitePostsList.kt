@@ -14,11 +14,16 @@ import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridS
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import coil3.SingletonImageLoader
+import coil3.compose.LocalPlatformContext
+import coil3.request.ImageRequest
 import com.daniebeler.pfpixelix.domain.model.Post
 import com.daniebeler.pfpixelix.ui.composables.profile.SwitchViewComposable
 import com.daniebeler.pfpixelix.ui.composables.profile.ViewEnum
@@ -27,6 +32,7 @@ import com.daniebeler.pfpixelix.ui.composables.states.EmptyState
 import com.daniebeler.pfpixelix.ui.composables.states.EmptyStateComposableWithoutRefresh
 import com.daniebeler.pfpixelix.ui.composables.states.ErrorComposable
 import com.daniebeler.pfpixelix.ui.composables.states.LoadingComposable
+import kotlinx.coroutines.flow.collectLatest
 import org.jetbrains.compose.resources.vectorResource
 import pixelix.app.generated.resources.Res
 import pixelix.app.generated.resources.photo
@@ -63,6 +69,29 @@ fun InfinitePostsList(
     staggeredGridState: LazyStaggeredGridState = rememberLazyStaggeredGridState()
 ) {
     val coordinator = remember { VideoPlaybackCoordinator() }
+    val imageRequestContext = LocalPlatformContext.current
+    val imageLoader = SingletonImageLoader.get(imageRequestContext)
+
+    LaunchedEffect(items, staggeredGridState) {
+        snapshotFlow { staggeredGridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
+            .collectLatest { lastVisibleIndex ->
+                val firstPostIndex = (lastVisibleIndex ?: 0).minus(2).coerceAtLeast(0)
+                items.asSequence()
+                    .drop(firstPostIndex)
+                    .flatMap { post ->
+                        post.mediaAttachments.asSequence().mapNotNull { it.thumbnail }
+                    }
+                    .distinct()
+                    .take(12)
+                    .forEach { thumbnailUrl ->
+                        imageLoader.execute(
+                            ImageRequest.Builder(imageRequestContext)
+                                .data(thumbnailUrl)
+                                .build()
+                        )
+                    }
+            }
+    }
 
     CustomPullToRefreshBox(
         isRefreshing = isRefreshing,
@@ -165,7 +194,11 @@ fun InfinitePostsList(
         }
 
         InfiniteStaggeredGridHandler(
-            lazyStaggeredGridState = staggeredGridState, itemCount = items.size
+            lazyStaggeredGridState = staggeredGridState,
+            itemCount = items.size,
+            buffer = 8,
+            isLoading = isLoading,
+            canLoadMore = !endReached
         ) {
             getItemsPaginated()
         }

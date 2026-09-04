@@ -27,11 +27,11 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
@@ -57,7 +57,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import co.touchlab.kermit.Logger
 import coil3.compose.AsyncImage
 import com.daniebeler.pfpixelix.di.LocalAppComponent
 import com.daniebeler.pfpixelix.di.injectViewModel
@@ -67,8 +66,10 @@ import com.daniebeler.pfpixelix.domain.model.SavedSearchType
 import com.daniebeler.pfpixelix.domain.model.toDomain
 import com.daniebeler.pfpixelix.ui.composables.custom_account.AccountListItem
 import com.daniebeler.pfpixelix.ui.composables.widgets.CustomHashtag
+import com.daniebeler.pfpixelix.ui.composables.widgets.CustomPost
 import com.daniebeler.pfpixelix.ui.composables.custom_account.CustomAccount
 import com.daniebeler.pfpixelix.ui.composables.explore.trending.TrendingComposable
+import com.daniebeler.pfpixelix.ui.composables.states.ErrorComposable
 import com.daniebeler.pfpixelix.ui.composables.states.LoadingComposable
 import com.daniebeler.pfpixelix.ui.navigation.Destination
 import kotlinx.coroutines.launch
@@ -83,6 +84,7 @@ import pixelix.app.generated.resources.default_avatar
 import pixelix.app.generated.resources.explore
 import pixelix.app.generated.resources.hash
 import pixelix.app.generated.resources.hashtags
+import pixelix.app.generated.resources.posts
 import pixelix.app.generated.resources.search
 import pixelix.app.generated.resources.trash
 
@@ -187,52 +189,29 @@ fun ExploreComposable(
                     }
                 }
             }
-            viewModel.searchState.searchResult?.let { searchResult ->
-                LazyColumn(
-                    modifier = Modifier.imePadding(),
-                    contentPadding = PaddingValues(bottom = 60.dp),
-                    content = {
-                        items(searchResult.accounts.take(5)) {
-                            CustomAccount(
-                                account = it,
-                                relationship = null,
-                                onClick = { viewModel.saveAccount(it.username, it) },
-                                navController = navController
-                            )
-                        }
-                        item { HorizontalDivider(Modifier.padding(12.dp)) }
-                        items(searchResult.tags.take(5)) {
-                            CustomHashtag(
-                                hashtag = it,
-                                onClick = { viewModel.saveHashtag(it.name) },
-                                navController = navController
-                            )
-                        }
-                    })
-            }
-
-            if (viewModel.searchState.isLoading) {
-                LoadingComposable()
-            }
         }
         Box(
             Modifier.windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Top))
                 .semantics { traversalIndex = 1f }.padding(top = 80.dp),
         ) {
-            if (textFieldState.text.isNotBlank() && viewModel.searchState.searchResult != null) {
-                SearchResultComposable(
-                    searchState = viewModel.searchState,
-                    saveAccount = { username, account -> viewModel.saveAccount(username, account) },
-                    saveHashtag = { hashtag -> viewModel.saveHashtag(hashtag) },
-                    navController = navController
-                )
-            } else {
+            if (textFieldState.text.isBlank()) {
                 TrendingComposable(
                     navController,
                     viewModel = viewModel,
                     initialPage = initialPage,
                     isSwipeEnabled = viewModel.isSwipeEnabled
                 )
+            } else {
+                when {
+                    viewModel.searchState.isLoading -> LoadingComposable()
+                    viewModel.searchState.error.isNotBlank() -> ErrorComposable(viewModel.searchState.error)
+                    viewModel.searchState.searchResult != null -> SearchResultComposable(
+                        searchState = viewModel.searchState,
+                        saveAccount = { username, account -> viewModel.saveAccount(username, account) },
+                        saveHashtag = { hashtag -> viewModel.saveHashtag(hashtag) },
+                        navController = navController
+                    )
+                }
             }
         }
     }
@@ -246,71 +225,97 @@ private fun SearchResultComposable(
     saveHashtag: (String) -> Unit,
     navController: NavController
 ) {
-    val pagerState = rememberPagerState(initialPage = 0, pageCount = { 2 })
+    val result = searchState.searchResult ?: return
+    val categories = buildList {
+        if (result.accounts.isNotEmpty()) add(SearchCategory.Accounts)
+        if (result.posts.isNotEmpty()) add(SearchCategory.Posts)
+        if (result.tags.isNotEmpty()) add(SearchCategory.Hashtags)
+    }
+    if (categories.isEmpty()) return
+
+    val pagerState = rememberPagerState(initialPage = 0, pageCount = { categories.size })
     val scope = rememberCoroutineScope()
+    LaunchedEffect(categories) {
+        if (pagerState.currentPage >= categories.size) {
+            pagerState.scrollToPage(categories.lastIndex)
+        }
+    }
+    val selectedPage = pagerState.currentPage.coerceIn(0, categories.lastIndex)
     Column {
-        PrimaryTabRow(selectedTabIndex = pagerState.currentPage) {
-            Tab(
-                text = { Text(stringResource(Res.string.accounts)) },
-                selected = pagerState.currentPage == 0,
-                selectedContentColor = MaterialTheme.colorScheme.primary,
-                unselectedContentColor = MaterialTheme.colorScheme.onBackground,
-                onClick = {
-                    scope.launch {
-                        pagerState.animateScrollToPage(0)
-                    }
-
-                })
-
-            Tab(
-                text = { Text(stringResource(Res.string.hashtags)) },
-                selected = pagerState.currentPage == 1,
-                selectedContentColor = MaterialTheme.colorScheme.primary,
-                unselectedContentColor = MaterialTheme.colorScheme.onBackground,
-                onClick = {
-                    scope.launch {
-                        pagerState.animateScrollToPage(1)
-                    }
-                })
+        PrimaryTabRow(selectedTabIndex = selectedPage) {
+            categories.forEachIndexed { index, category ->
+                Tab(
+                    text = {
+                        Text(
+                            stringResource(
+                                when (category) {
+                                    SearchCategory.Accounts -> Res.string.accounts
+                                    SearchCategory.Posts -> Res.string.posts
+                                    SearchCategory.Hashtags -> Res.string.hashtags
+                                }
+                            )
+                        )
+                    },
+                    selected = selectedPage == index,
+                    selectedContentColor = MaterialTheme.colorScheme.primary,
+                    unselectedContentColor = MaterialTheme.colorScheme.onBackground,
+                    onClick = { scope.launch { pagerState.animateScrollToPage(index) } }
+                )
+            }
         }
         HorizontalPager(
             state = pagerState,
             beyondViewportPageCount = 2,
             modifier = Modifier.weight(1f).background(MaterialTheme.colorScheme.background)
         ) { tabIndex ->
-            when (tabIndex) {
-                0 -> Box(modifier = Modifier.fillMaxSize()) {
+            when (categories[tabIndex]) {
+                SearchCategory.Accounts -> Box(modifier = Modifier.fillMaxSize()) {
                     LazyColumn(contentPadding = PaddingValues(8.dp), content = {
-                        if (searchState.searchResult != null) {
-                            itemsIndexed(searchState.searchResult.accounts) { index, account ->
-                                AccountListItem(
-                                    account = account,
-                                    relationship = null,
-                                    navController = navController,
-                                    index = index,
-                                    count = searchState.searchResult.accounts.size,
-                                    onClick = { saveAccount(account.username, account) })
-                            }
+                        itemsIndexed(result.accounts) { index, account ->
+                            AccountListItem(
+                                account = account,
+                                relationship = null,
+                                navController = navController,
+                                index = index,
+                                count = result.accounts.size,
+                                onClick = { saveAccount(account.username, account) })
                         }
                     })
                 }
 
-                1 -> Box(modifier = Modifier.fillMaxSize()) {
+                SearchCategory.Posts -> Box(modifier = Modifier.fillMaxSize()) {
+                    LazyColumn(contentPadding = PaddingValues(8.dp)) {
+                        items(result.posts) { post ->
+                            CustomPost(
+                                post = post,
+                                navController = navController,
+                                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                                roundedCornerShape = RoundedCornerShape(12.dp)
+                            )
+                        }
+                    }
+                }
+
+                SearchCategory.Hashtags -> Box(modifier = Modifier.fillMaxSize()) {
                     LazyColumn(content = {
-                        if (searchState.searchResult != null) {
-                            items(searchState.searchResult.tags) {
-                                CustomHashtag(
-                                    hashtag = it,
-                                    onClick = { saveHashtag(it.name) },
-                                    navController = navController
-                                )
-                            }
+                        items(result.tags) {
+                            CustomHashtag(
+                                hashtag = it,
+                                onClick = { saveHashtag(it.name) },
+                                navController = navController
+                            )
                         }
                     })
                 }
             }
         }
     }
+}
+
+private enum class SearchCategory {
+    Accounts,
+    Posts,
+    Hashtags
 }
 
 @Composable

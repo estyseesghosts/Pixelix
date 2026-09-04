@@ -17,8 +17,7 @@ import com.daniebeler.pfpixelix.domain.service.search.SavedSearchesService
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import me.tatarka.inject.annotations.Inject
 
@@ -95,42 +94,46 @@ class ExploreViewModel @Inject constructor(
     }
 
     fun onSearch(text: String) {
-        if (text.isNotBlank()) {
-            getSearchResults(text, 20)
+        if (text.isBlank()) {
+            textInputChange(text)
+            return
         }
+        searchJob?.cancel()
+        skipDebounceForText = text
+        searchState = SearchState(isLoading = true)
+        searchJob = search(text, 20)
     }
 
     fun textInputChange(text: String) {
-        searchDebounced(text)
+        if (skipDebounceForText == text) {
+            skipDebounceForText = null
+            return
+        }
+        searchJob?.cancel()
+        if (text.isBlank()) {
+            searchState = SearchState()
+            searchJob = null
+            return
+        }
+        searchState = SearchState(isLoading = true)
+        searchJob = search(text, 5, debounce = true)
     }
 
     private var searchJob: Job? = null
+    private var skipDebounceForText: String? = null
 
-    private fun searchDebounced(searchText: String) {
-        searchJob?.cancel()
-        searchJob = viewModelScope.launch {
-            delay(500)
-            if (searchText.isNotBlank()) {
-                getSearchResults(searchText, 5)
+    private fun search(text: String, limit: Int, debounce: Boolean = false): Job = viewModelScope.launch {
+        if (debounce) delay(500)
+        if (text.isBlank()) {
+            searchState = SearchState()
+            return@launch
+        }
+        exploreService.search(text, limit = limit).collect { result ->
+            searchState = when (result) {
+                is Resource.Success -> SearchState(searchResult = result.data)
+                is Resource.Error -> SearchState(error = result.message ?: "An unexpected error occurred")
+                is Resource.Loading -> SearchState(isLoading = true)
             }
         }
-    }
-
-    private fun getSearchResults(text: String, limit: Int) {
-        exploreService.search(text, limit = limit).onEach { result ->
-            searchState = when (result) {
-                is Resource.Success -> {
-                    SearchState(searchResult = result.data)
-                }
-
-                is Resource.Error -> {
-                    SearchState(error = result.message ?: "An unexpected error occurred")
-                }
-
-                is Resource.Loading -> {
-                    SearchState(isLoading = true)
-                }
-            }
-        }.launchIn(viewModelScope)
     }
 }

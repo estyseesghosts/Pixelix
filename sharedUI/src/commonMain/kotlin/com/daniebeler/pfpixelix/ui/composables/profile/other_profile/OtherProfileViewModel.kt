@@ -13,7 +13,6 @@ import com.daniebeler.pfpixelix.domain.model.MutedAccount
 import com.daniebeler.pfpixelix.domain.model.Post
 import com.daniebeler.pfpixelix.domain.model.request.UserBlockRequest
 import com.daniebeler.pfpixelix.domain.model.request.UserMuteRequest
-import com.daniebeler.pfpixelix.domain.repository.pixelfed.PixelfedApi
 import com.daniebeler.pfpixelix.domain.service.general.AccountService
 import com.daniebeler.pfpixelix.domain.service.general.AuthService
 import com.daniebeler.pfpixelix.domain.service.general.CollectionService
@@ -149,10 +148,17 @@ class OtherProfileViewModel(
     }
 
     fun loadDataByUsername(username: String, refreshing: Boolean, navController: NavController) {
-        val myUsername = authService.getCurrentSession()!!.username
-        if (username == myUsername) {
+        val normalizedUsername = username.trim().removePrefix("@")
+        val myUsername = authService.getCurrentSession()?.username
+        if (myUsername != null && normalizedUsername.equals(myUsername.removePrefix("@"), ignoreCase = true)) {
             navController.popBackStack()
             navController.navigate(Destination.OwnProfile)
+            return
+        }
+        if (!refreshing && accountState.account != null &&
+            accountState.account?.username.equals(normalizedUsername, ignoreCase = true)
+        ) {
+            return
         }
         getAccountByUsername(username, refreshing)
     }
@@ -303,7 +309,7 @@ class OtherProfileViewModel(
         postService.getPostsOfAccount(userId, username).onEach { result ->
             postsState = when (result) {
                 is Resource.Success -> {
-                    val endReached = (result.data.data.size) < PixelfedApi.PROFILE_POSTS_LIMIT
+                    val endReached = result.data.next == null
                     PostsState(
                         posts = result.data.data, endReached = endReached, nextId = result.data.next
                     )
@@ -330,7 +336,7 @@ class OtherProfileViewModel(
             postService.getPostsOfAccount(userId, username, postsState.nextId).onEach { result ->
                 postsState = when (result) {
                     is Resource.Success -> {
-                        val endReached = (result.data.data.size) < PixelfedApi.PROFILE_POSTS_LIMIT
+                        val endReached = result.data.next == null
                         PostsState(
                             posts = postsState.posts + (result.data.data),
                             endReached = endReached,

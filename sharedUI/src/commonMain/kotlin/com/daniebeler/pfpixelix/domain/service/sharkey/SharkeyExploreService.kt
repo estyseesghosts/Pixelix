@@ -56,11 +56,13 @@ class SharkeyExploreService(
                 posts = api.searchNotes(request(query = searchText, limit = limit)).map { it.toDomain() },
                 tags = emptyList()
             )
-            else -> Search(
+            "hashtags" -> Search(emptyList(), emptyList(), emptyList())
+            null -> Search(
                 accounts = api.searchUsers(request(query = searchText, limit = limit, detail = true)).map { it.toDomain() },
                 posts = api.searchNotes(request(query = searchText, limit = limit)).map { it.toDomain() },
                 tags = emptyList()
             )
+            else -> Search(emptyList(), emptyList(), emptyList())
         }
     }
 

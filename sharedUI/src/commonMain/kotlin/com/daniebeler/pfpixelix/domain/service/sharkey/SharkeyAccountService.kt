@@ -54,9 +54,20 @@ class SharkeyAccountService(
     }
 
     override fun getAccountByUsername(username: String) = loadResource {
-        val normalized = username.removePrefix("@").substringBefore("@")
+        val normalized = username.trim().removePrefix("@")
+        val localUsername = normalized.substringBefore("@")
+        val host = normalized.substringAfter("@", "")
         api.searchUsers(request(query = normalized, limit = 20, detail = true))
-            .firstOrNull { it.username.equals(normalized, ignoreCase = true) }
+            .firstOrNull { candidate ->
+                val candidateUsername = candidate.username.orEmpty()
+                val candidateIdentity = if (candidate.host.isNullOrBlank()) {
+                    candidateUsername
+                } else {
+                    "$candidateUsername@${candidate.host}"
+                }
+                candidateIdentity.equals(normalized, ignoreCase = true) ||
+                    (host.isEmpty() && candidateUsername.equals(localUsername, ignoreCase = true))
+            }
             ?.toDomain() ?: error("Sharkey user '$username' was not found.")
     }
 

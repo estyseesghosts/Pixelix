@@ -14,6 +14,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridScope
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.lazy.staggeredgrid.items
+import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -94,7 +95,7 @@ fun LazyStaggeredGridScope.postsWrapperComposable(
 }
 
 internal fun List<Post>.forPresentation(view: ViewEnum): List<Post> =
-    if (view == ViewEnum.Timeline) filter { it.isTopLevelMediaPost() } else filter { post ->
+    filter { post ->
         post.mediaAttachments.any { attachment ->
             attachment.type in setOf(null, "image", "video", "gifv")
         }
