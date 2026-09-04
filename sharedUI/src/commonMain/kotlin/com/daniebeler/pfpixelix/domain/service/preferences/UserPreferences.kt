@@ -62,6 +62,8 @@ class UserPreferences(private val dataStore: DataStore<Preferences>) {
     var hideSensitiveContent by boolean("k_hide_sensitive_content", true)
     var blurSensitiveContent by boolean("k_blur_sensitive_content", true)
     val blurSensitiveContentFlow = booleanFlow("k_blur_sensitive_content", true)
+    var hideSensitiveMedia by boolean("k_hide_sensitive_media", false)
+    val hideSensitiveMediaFlow = booleanFlow("k_hide_sensitive_media", false)
 
     var useInAppBrowser by boolean("k_use_in_app_browser", true)
 
@@ -76,6 +78,7 @@ class UserPreferences(private val dataStore: DataStore<Preferences>) {
 
     var enableVolume by boolean("k_enable_volume", true)
     val enableVolumeFlow = booleanFlow("k_enable_volume", true)
+    var muteVideosByDefault by boolean("k_mute_videos_by_default", false)
 
     var appThemeMode by int("k_theme_mode", AppThemeMode.FOLLOW_SYSTEM)
     val appThemeModeFlow = intFlow("k_theme_mode", AppThemeMode.FOLLOW_SYSTEM)

@@ -47,6 +47,9 @@ import com.daniebeler.pfpixelix.di.injectViewModel
 import com.daniebeler.pfpixelix.domain.service.platform.PlatformFeatures
 import com.daniebeler.pfpixelix.ui.composables.profile.CollectionsComposable
 import com.daniebeler.pfpixelix.ui.composables.profile.ProfileTopSection
+import com.daniebeler.pfpixelix.ui.composables.profile.ProfileContentTab
+import com.daniebeler.pfpixelix.ui.composables.profile.ProfileContentTabs
+import com.daniebeler.pfpixelix.ui.composables.profile.forProfileTab
 import com.daniebeler.pfpixelix.ui.composables.profile.server_stats.DomainSoftwareComposable
 import com.daniebeler.pfpixelix.ui.composables.states.ErrorComposableDialog
 import com.daniebeler.pfpixelix.ui.composables.widgets.InfinitePostsList
@@ -69,6 +72,10 @@ fun OwnProfileComposable(
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showBottomSheet by remember { mutableStateOf(0) }
+    var profileTab by remember { mutableStateOf(ProfileContentTab.Media) }
+    val profilePosts = viewModel.postsState.posts.forProfileTab(
+        profileTab, viewModel.accountState.account?.id.orEmpty()
+    )
 
     val lazyGridState = rememberLazyStaggeredGridState()
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
@@ -123,7 +130,7 @@ fun OwnProfileComposable(
         }) { paddingValues ->
         Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
             InfinitePostsList(
-                items = viewModel.postsState.posts,
+                items = profilePosts,
                 isLoading = viewModel.postsState.isLoading,
                 isRefreshing = viewModel.accountState.refreshing || viewModel.postsState.refreshing,
                 error = viewModel.postsState.error,
@@ -202,13 +209,14 @@ fun OwnProfileComposable(
                                 instanceDomain = viewModel.ownDomain,
                             ) { url -> viewModel.openUrl(url) }
                         }
+                        ProfileContentTabs(profileTab) { profileTab = it }
                     }
                 })
         }
     }
 
     InfiniteStaggeredGridHandler(
-        lazyStaggeredGridState = lazyGridState, itemCount = viewModel.postsState.posts.size
+        lazyStaggeredGridState = lazyGridState, itemCount = profilePosts.size
     ) {
         viewModel.getPostsPaginated()
     }

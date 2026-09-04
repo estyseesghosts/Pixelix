@@ -58,6 +58,17 @@ class SharkeyDtoTest {
     }
 
     @Test
+    fun quoteStatusIsPreservedFromSharkeyNote() {
+        val post = SharkeyNoteDto(
+            id = "quote",
+            user = SharkeyUserDto(id = "author", username = "author"),
+            quoteId = "quoted"
+        ).toDomain()
+
+        assertTrue(post.isQuote)
+    }
+
+    @Test
     fun authenticatedRequestsContainOnlyTheProvidedNativeCursorAndToken() {
         val request = SharkeyRequest(i = "token", untilId = "last-note", limit = 20)
         val encoded = json.encodeToString(request)

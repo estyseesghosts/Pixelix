@@ -59,6 +59,9 @@ import com.daniebeler.pfpixelix.domain.service.capabilities.Capabilities
 import com.daniebeler.pfpixelix.ui.composables.profile.CollectionsComposable
 import com.daniebeler.pfpixelix.ui.composables.profile.MutualFollowersComposable
 import com.daniebeler.pfpixelix.ui.composables.profile.ProfileTopSection
+import com.daniebeler.pfpixelix.ui.composables.profile.ProfileContentTab
+import com.daniebeler.pfpixelix.ui.composables.profile.ProfileContentTabs
+import com.daniebeler.pfpixelix.ui.composables.profile.forProfileTab
 import com.daniebeler.pfpixelix.ui.composables.profile.server_stats.DomainSoftwareComposable
 import com.daniebeler.pfpixelix.ui.composables.settings.muted_accounts.MuteAccountAlert
 import com.daniebeler.pfpixelix.ui.composables.states.ErrorComposableDialog
@@ -125,6 +128,10 @@ fun OtherProfileComposable(
     var showMuteAlert by remember { mutableStateOf(false) }
     var showBlockAlert by remember { mutableStateOf(false) }
     var showUnBlockAlert by remember { mutableStateOf(false) }
+    var profileTab by remember { mutableStateOf(ProfileContentTab.Media) }
+    val profilePosts = viewModel.postsState.posts.forProfileTab(
+        profileTab, viewModel.accountState.account?.id ?: viewModel.userId
+    )
 
     LaunchedEffect(userId, username) {
         viewModel.loadData(userId, username, false, navController)
@@ -182,7 +189,7 @@ fun OtherProfileComposable(
         }) { paddingValues ->
         Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
             InfinitePostsList(
-                items = viewModel.postsState.posts,
+                items = profilePosts,
                 isLoading = viewModel.postsState.isLoading,
                 isRefreshing = viewModel.accountState.refreshing || viewModel.postsState.refreshing,
                 error = viewModel.postsState.error,
@@ -381,6 +388,7 @@ fun OtherProfileComposable(
                                 instanceDomain = viewModel.domain,
                                 openUrl = { url -> viewModel.openUrl(url) })
                         }
+                        ProfileContentTabs(profileTab) { profileTab = it }
                     }
                 })
 

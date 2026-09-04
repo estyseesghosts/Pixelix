@@ -65,6 +65,7 @@ fun VideoAttachment(
     ).apply {
         loop = true
         userDragging = false
+        volume = if (viewModel.volume) 1f else 0f
     }
     LaunchedEffect(attachment) {
         player.openUri(attachment.url)

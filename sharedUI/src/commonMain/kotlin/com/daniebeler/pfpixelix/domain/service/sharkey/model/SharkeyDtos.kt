@@ -85,6 +85,8 @@ data class SharkeyNoteDto(
     @SerialName("visibleUserIds") val visibleUserIds: List<String>? = null,
     val renote: SharkeyNoteDto? = null,
     @SerialName("renoteId") val renoteId: String? = null,
+    val quote: SharkeyNoteDto? = null,
+    @SerialName("quoteId") val quoteId: String? = null,
     val url: String? = null
 )
 
@@ -175,7 +177,8 @@ fun SharkeyNoteDto.toDomain(): Post {
         reblogCount = activeNote.renoteCount ?: 0,
         emojis = emptyList(),
         commentsDisabled = false,
-        category = null
+        category = null,
+        isQuote = activeNote.quote != null || activeNote.quoteId != null
     )
 }
 

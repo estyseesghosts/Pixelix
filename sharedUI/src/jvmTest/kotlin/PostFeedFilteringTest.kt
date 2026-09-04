@@ -61,10 +61,9 @@ class PostFeedFilteringTest {
             post("video", "video")
         )
 
-        assertEquals(posts, posts.forPresentation(ViewEnum.Timeline))
+        assertEquals(listOf("image", "video"), posts.forPresentation(ViewEnum.Timeline).map { it.id })
         assertEquals(listOf("image", "video"), posts.forPresentation(ViewEnum.Grid).map { it.id })
         assertEquals(listOf("image", "video"), posts.forPresentation(ViewEnum.Masonry).map { it.id })
-        assertEquals(listOf("image", "video"), posts.forPresentation(ViewEnum.LargeMasonry).map { it.id })
     }
 
     private fun post(id: String, attachmentType: String? = "missing"): Post = Post(

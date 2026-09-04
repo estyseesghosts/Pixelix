@@ -33,6 +33,7 @@ import androidx.navigation.NavController
 import com.daniebeler.pfpixelix.di.injectViewModel
 import com.daniebeler.pfpixelix.domain.service.platform.PlatformFeatures
 import com.daniebeler.pfpixelix.ui.composables.settings.preferences.prefs.prefs.AutoplayVideoPref
+import com.daniebeler.pfpixelix.ui.composables.settings.preferences.prefs.prefs.BlurSensitiveMediaPref
 import com.daniebeler.pfpixelix.ui.composables.settings.preferences.prefs.prefs.CaptionTemplate
 import com.daniebeler.pfpixelix.ui.composables.settings.preferences.prefs.prefs.ClearCachePref
 import com.daniebeler.pfpixelix.ui.composables.settings.preferences.prefs.prefs.CustomizeAppIconPref
@@ -42,9 +43,10 @@ import com.daniebeler.pfpixelix.ui.composables.settings.preferences.prefs.prefs.
 import com.daniebeler.pfpixelix.ui.composables.settings.preferences.prefs.prefs.DeleteAccountPref
 import com.daniebeler.pfpixelix.ui.composables.settings.preferences.prefs.prefs.HideAltTextButtonPref
 import com.daniebeler.pfpixelix.ui.composables.settings.preferences.prefs.prefs.HideMetadataPref
-import com.daniebeler.pfpixelix.ui.composables.settings.preferences.prefs.prefs.HideSensitiveContentPref
+import com.daniebeler.pfpixelix.ui.composables.settings.preferences.prefs.prefs.HideSensitiveMediaPref
 import com.daniebeler.pfpixelix.ui.composables.settings.preferences.prefs.prefs.LogoutPref
 import com.daniebeler.pfpixelix.ui.composables.settings.preferences.prefs.prefs.MoreSettingsPref
+import com.daniebeler.pfpixelix.ui.composables.settings.preferences.prefs.prefs.MuteVideosByDefaultPref
 import com.daniebeler.pfpixelix.ui.composables.settings.preferences.prefs.prefs.RepostSettingsPref
 import com.daniebeler.pfpixelix.ui.composables.settings.preferences.prefs.prefs.SwipeBetweenTimelines
 import com.daniebeler.pfpixelix.ui.composables.settings.preferences.prefs.prefs.ThemePref
@@ -103,7 +105,9 @@ fun PreferencesComposable(
             )
             Spacer(modifier = Modifier.height(6.dp))
 
-            HideSensitiveContentPref()
+            HideSensitiveMediaPref()
+
+            BlurSensitiveMediaPref()
 
             HideAltTextButtonPref()
 
@@ -112,6 +116,8 @@ fun PreferencesComposable(
             }
 
             AutoplayVideoPref()
+
+            MuteVideosByDefaultPref()
 
             if (viewModel.capabilities.value.profile.showRepostSettings) {
                 RepostSettingsPref { viewModel.openRepostSettings() }

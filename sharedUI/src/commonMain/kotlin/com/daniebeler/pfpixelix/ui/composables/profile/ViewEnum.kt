@@ -3,8 +3,7 @@ package com.daniebeler.pfpixelix.ui.composables.profile
 enum class ViewEnum {
     Timeline,
     Grid,
-    Masonry,
-    LargeMasonry;
+    Masonry;
 
     companion object {
         fun getView(ordinal: Int): ViewEnum {

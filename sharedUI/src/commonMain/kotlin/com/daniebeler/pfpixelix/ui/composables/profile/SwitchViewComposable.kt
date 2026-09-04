@@ -27,8 +27,6 @@ import pixelix.app.generated.resources.list_filled
 import pixelix.app.generated.resources.masonry
 import pixelix.app.generated.resources.masonry_filled
 import pixelix.app.generated.resources.posts
-import pixelix.app.generated.resources.square
-import pixelix.app.generated.resources.square_filled
 
 @Composable
 fun SwitchViewComposable(
@@ -55,23 +53,6 @@ fun SwitchViewComposable(
 
 
             Row {
-                Box(modifier = Modifier.padding(4.dp).clickable { onViewChange(ViewEnum.LargeMasonry) }
-                    .alpha(
-                        if (viewType == ViewEnum.LargeMasonry) {
-                            1f
-                        } else {
-                            0.5f
-                        }
-                    )) {
-                    Icon(
-                        imageVector = if (viewType == ViewEnum.LargeMasonry) {
-                            vectorResource(Res.drawable.square_filled)
-                        } else {
-                            vectorResource(Res.drawable.square)
-                        }, modifier = Modifier.size(24.dp), contentDescription = "large masonry view"
-                    )
-                }
-
                 Box(modifier = Modifier.padding(4.dp).clickable { onViewChange(ViewEnum.Masonry) }
                     .alpha(
                         if (viewType == ViewEnum.Masonry) {

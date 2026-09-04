@@ -208,6 +208,11 @@ fun PostComposable(
         finishedListener = { animateHeart = false })
 
     val currentPost = viewModel.post ?: return
+    if (currentPost.mediaAttachments.isNotEmpty() && currentPost.sensitive &&
+        !viewModel.showPost && viewModel.hideSensitiveMedia
+    ) {
+        return
+    }
 
     Column(
         modifier = modifier.clip(RoundedCornerShape(16.dp))

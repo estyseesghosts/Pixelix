@@ -10,13 +10,18 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridScope
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -86,24 +91,44 @@ fun LazyStaggeredGridScope.postsWrapperComposable(
         )
     }
 
-    if (view == ViewEnum.LargeMasonry) {
-        postsLargeMasonryInScope(
-            posts = presentedPosts,
-            isLoading = isLoading,
-            isRefreshing = isRefreshing,
-            endReached = endReached,
-            columnCount = gridColumnCount,
-            navController = navController
-        )
-    }
 }
 
 internal fun List<Post>.forPresentation(view: ViewEnum): List<Post> =
-    if (view == ViewEnum.Timeline) this else filter { post ->
+    if (view == ViewEnum.Timeline) filter { it.isTopLevelMediaPost() } else filter { post ->
         post.mediaAttachments.any { attachment ->
             attachment.type in setOf(null, "image", "video", "gifv")
         }
     }
+
+internal enum class ProfileContentTab { Media, Replies, Tagged }
+
+internal fun List<Post>.forProfileTab(tab: ProfileContentTab, ownerId: String): List<Post> =
+    if (tab == ProfileContentTab.Media) filter { it.account.id == ownerId && it.isTopLevelMediaPost() } else emptyList()
+
+private fun Post.isTopLevelMediaPost() =
+    mediaAttachments.any { it.type in setOf(null, "image", "video", "gifv") } &&
+        inReplyToId == null && reblogId == null && rebloggedBy == null && !isQuote
+
+@Composable
+internal fun ProfileContentTabs(selected: ProfileContentTab, onSelected: (ProfileContentTab) -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        ProfileContentTab.entries.forEach { tab ->
+            Text(
+                text = when (tab) {
+                    ProfileContentTab.Media -> "Media"
+                    ProfileContentTab.Replies -> "Replies"
+                    ProfileContentTab.Tagged -> "Tagged"
+                },
+                modifier = Modifier.clickable { onSelected(tab) }.padding(12.dp),
+                color = if (tab == selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+            )
+        }
+    }
+}
 
 private fun LazyStaggeredGridScope.postsGridInScope(
     posts: List<Post>,
@@ -367,54 +392,6 @@ private fun LazyStaggeredGridScope.postsMasonryInScope(
         }
     }
 }
-
-private fun LazyStaggeredGridScope.postsLargeMasonryInScope(
-    posts: List<Post>,
-    isLoading: Boolean,
-    isRefreshing: Boolean,
-    endReached: Boolean,
-    columnCount: Int = 1,
-    navController: NavController,
-) {
-
-    if (posts.isNotEmpty()) {
-
-        items(posts, key = { it.uiKey }) { post ->
-            val zIndex = remember {
-                mutableFloatStateOf(1f)
-            }
-
-            val shape = remember(posts.size) {
-                calculateOuterGridShape(
-                    index = posts.indexOf(post),
-                    totalCount = posts.size,
-                    columnCount = columnCount
-                )
-            }
-
-            Box(modifier = Modifier.zIndex(zIndex.floatValue)) {
-                MasonryPost(
-                    post = post,
-                    roundedCornerShape = shape,
-                    navController = navController,
-                )
-            }
-        }
-
-        if (isLoading && !isRefreshing) {
-            item(key = "loading_key", span = StaggeredGridItemSpan.FullLine) {
-                LoadingComposable(Modifier.fillMaxWidth().padding(vertical = 50.dp))
-            }
-        }
-
-        if (endReached && posts.size > 3) {
-            item(key = "end_of_list_key", span = StaggeredGridItemSpan.FullLine) {
-                EndOfListComposable()
-            }
-        }
-    }
-}
-
 
 fun calculateOuterGridShape(
     index: Int,

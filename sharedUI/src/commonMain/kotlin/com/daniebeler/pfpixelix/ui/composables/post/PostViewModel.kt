@@ -80,10 +80,11 @@ class PostViewModel @Inject constructor(
     var hideMetadataPref by mutableStateOf(true)
     var isAutoplayVideos by mutableStateOf(true)
     var blurSensitiveContent by mutableStateOf(false)
+    var hideSensitiveMedia by mutableStateOf(prefs.hideSensitiveMedia)
     var instance: Instance? = null
     var replyText by mutableStateOf(TextFieldValue())
 
-    var volume by mutableStateOf(prefs.enableVolume)
+    var volume by mutableStateOf(!prefs.muteVideosByDefault)
     var relationshipState by mutableStateOf(RelationshipState())
 
     val mutedAccount: MutedAccount?
@@ -117,24 +118,17 @@ class PostViewModel @Inject constructor(
         viewModelScope.launch {
             prefs.blurSensitiveContentFlow.collect { blurSensitiveContent = it }
         }
+        viewModelScope.launch {
+            prefs.hideSensitiveMediaFlow.collect { hideSensitiveMedia = it }
+        }
     }
 
     fun toggleVolume(newVolume: Boolean) {
         volume = newVolume
-        prefs.enableVolume = newVolume
     }
 
     fun updatePost(post: Post) {
         this.post = post
-        getVolume()
-    }
-
-    private fun getVolume() {
-        viewModelScope.launch {
-            prefs.enableVolumeFlow.collect { res ->
-                volume = res
-            }
-        }
     }
 
     fun getInstance() {

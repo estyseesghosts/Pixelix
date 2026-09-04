@@ -14,13 +14,10 @@ import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 import pixelix.app.generated.resources.Res
 import pixelix.app.generated.resources.default_timeline_tab
-import pixelix.app.generated.resources.global
-import pixelix.app.generated.resources.globe
 import pixelix.app.generated.resources.home
 import pixelix.app.generated.resources.house
 import pixelix.app.generated.resources.local
 import pixelix.app.generated.resources.local_timeline
-import pixelix.app.generated.resources.share
 import pixelix.app.generated.resources.timeline
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -28,19 +25,19 @@ import pixelix.app.generated.resources.timeline
 fun DefaultHomeTab() {
     val pref = LocalAppComponent.current.preferences
     val defaultHomeTab by pref.defaultHomeTabFlow.collectAsState(pref.defaultHomeTab)
+    val selectedHomeTab = defaultHomeTab.coerceIn(0, 1)
 
     val onOptionClick = { mode: Int ->
         pref.defaultHomeTab = mode
     }
 
-    val visibilityDesc = when (defaultHomeTab) {
+    val visibilityDesc = when (selectedHomeTab) {
         0 -> stringResource(Res.string.home)
         1 -> stringResource(Res.string.local)
-        2 -> stringResource(Res.string.global)
         else -> ""
     }
 
-    val openCount = 8
+    val openCount = 7
     ExpandOptionsPref(
         leadingIcon = Res.drawable.timeline,
         title = stringResource(Res.string.default_timeline_tab),
@@ -55,7 +52,7 @@ fun DefaultHomeTab() {
                 contentDescription = stringResource(Res.string.home)
             ),
             title = stringResource(Res.string.home),
-            trailingContent = radioButtonBlock(defaultHomeTab == 0),
+            trailingContent = radioButtonBlock(selectedHomeTab == 0),
             value = 0,
             onOptionClick = onOptionClick,
         )
@@ -66,19 +63,8 @@ fun DefaultHomeTab() {
                 contentDescription = stringResource(Res.string.local)
             ),
             title = stringResource(Res.string.local),
-            trailingContent = radioButtonBlock(defaultHomeTab == 1),
+            trailingContent = radioButtonBlock(selectedHomeTab == 1),
             value = 1,
-            onOptionClick = onOptionClick,
-        )
-        ValueOption(
-            shapes = ListItemDefaults.segmentedShapes(index = 5, count = openCount),
-            leadingIcon = imageVectorIconBlock(
-                imageVector = vectorResource(Res.drawable.globe),
-                contentDescription = stringResource(Res.string.global)
-            ),
-            title = stringResource(Res.string.global),
-            trailingContent = radioButtonBlock(defaultHomeTab == 2),
-            value = 2,
             onOptionClick = onOptionClick,
         )
     }

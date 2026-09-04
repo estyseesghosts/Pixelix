@@ -45,7 +45,6 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.daniebeler.pfpixelix.di.LocalAppComponent
 import com.daniebeler.pfpixelix.di.injectViewModel
 import com.daniebeler.pfpixelix.ui.composables.contribute.ContributeBottomSheet
-import com.daniebeler.pfpixelix.ui.composables.timelines.global_timeline.GlobalTimelineComposable
 import com.daniebeler.pfpixelix.ui.composables.timelines.home_timeline.HomeTimelineComposable
 import com.daniebeler.pfpixelix.ui.composables.timelines.local_timeline.LocalTimelineComposable
 import com.daniebeler.pfpixelix.ui.navigation.Destination
@@ -56,8 +55,6 @@ import pixelix.app.generated.resources.Res
 import pixelix.app.generated.resources.add_circle
 import pixelix.app.generated.resources.app_name
 import pixelix.app.generated.resources.coffee
-import pixelix.app.generated.resources.global
-import pixelix.app.generated.resources.global_timeline_explained
 import pixelix.app.generated.resources.home
 import pixelix.app.generated.resources.home_timeline_explained
 import pixelix.app.generated.resources.local
@@ -72,7 +69,7 @@ fun HomeComposable(
     openPreferencesDrawer: () -> Unit,
     viewModel: HomeViewModel = injectViewModel("homeViewModel") { homeViewModel },
 ) {
-    val pagerState = rememberPagerState(viewModel.defaultTab) { 3 }
+    val pagerState = rememberPagerState(viewModel.defaultTab) { 2 }
     val scope = rememberCoroutineScope()
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -192,20 +189,6 @@ fun HomeComposable(
                         }
                     })
 
-                Tab(
-                    text = { Text(stringResource(Res.string.global)) },
-                    selected = pagerState.currentPage == 2,
-                    selectedContentColor = MaterialTheme.colorScheme.primary,
-                    unselectedContentColor = MaterialTheme.colorScheme.onBackground,
-                    onClick = {
-                        if (pagerState.currentPage == 2) {
-                            appComponent.backToTopTrigger.scrollToTop()
-                        } else {
-                            scope.launch {
-                                pagerState.animateScrollToPage(2)
-                            }
-                        }
-                    })
             }
 
             HorizontalPager(
@@ -224,9 +207,6 @@ fun HomeComposable(
                         LocalTimelineComposable(pagerState, tabIndex, navController)
                     }
 
-                    2 -> Box(modifier = Modifier.fillMaxSize()) {
-                        GlobalTimelineComposable(pagerState, tabIndex, navController)
-                    }
                 }
             }
         }
@@ -253,10 +233,6 @@ fun HomeComposable(
                         description = stringResource(Res.string.local_timeline_explained)
                     )
 
-                    SheetItem(
-                        header = stringResource(Res.string.global),
-                        description = stringResource(Res.string.global_timeline_explained)
-                    )
                 }
             }
         }
