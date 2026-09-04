@@ -70,9 +70,3 @@ kotlin {
 dependencies {
     implementation(project(":sharedUI"))
 }
-
-tasks.configureEach {
-    if (name.contains("ArtProfile")) {
-        enabled = false
-    }
-}

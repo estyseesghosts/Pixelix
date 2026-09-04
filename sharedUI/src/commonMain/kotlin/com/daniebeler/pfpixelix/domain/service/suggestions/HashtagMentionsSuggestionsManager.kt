@@ -11,10 +11,12 @@ import com.daniebeler.pfpixelix.domain.service.general.ExploreService
 import com.daniebeler.pfpixelix.domain.service.utils.Resource
 import com.daniebeler.pfpixelix.ui.composables.post.SuggestionsState
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import me.tatarka.inject.annotations.Inject
@@ -51,31 +53,27 @@ class HashtagMentionsSuggestionsManager @Inject constructor(
             "tags"
         }
         val searchShortened = searchString.substring(1)
-        searchJob = exploreService.search(searchShortened, limit = 10).onEach { result ->
-            _suggestionsState.update { currentState ->
-                when (result) {
-                    is Resource.Success -> {
-                        SuggestionsState(
-                            suggestions = if (type == "accounts") {
-                                result.data.accounts.map { Pair("@" + it.acct, it.avatar) }
-                            } else {
-                                result.data.tags.map { Pair("#" + it.name, null) }
-                            }
-                        )
-                    }
+        searchJob = scope.launch {
+            delay(500)
+            exploreService.search(searchShortened, limit = 10).onEach { result ->
+                _suggestionsState.update { currentState ->
+                    when (result) {
+                        is Resource.Success -> {
+                            SuggestionsState(
+                                suggestions = if (type == "accounts") {
+                                    result.data.accounts.map { Pair("@" + it.acct, it.avatar) }
+                                } else {
+                                    result.data.tags.map { Pair("#" + it.name, null) }
+                                }
+                            )
+                        }
 
-                    is Resource.Error -> {
-                        SuggestionsState(
-                            error = result.message
-                        )
-                    }
-
-                    is Resource.Loading -> {
-                        currentState.copy(isLoading = true)
+                        is Resource.Error -> SuggestionsState(error = result.message)
+                        is Resource.Loading -> currentState.copy(isLoading = true)
                     }
                 }
-            }
-        }.launchIn(scope)
+            }.collect()
+        }
     }
 
     fun selectSuggestion(suggestion: String, textFieldValue: TextFieldValue): TextFieldValue {

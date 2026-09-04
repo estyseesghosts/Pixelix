@@ -103,18 +103,95 @@ fun GeneralTab(
                 }
             }
 
-            MaxLengthTextField(
-                value = viewModel.caption,
-                onValueChange = { viewModel.updateCaption(it) },
-                textFieldModifier = Modifier.fillMaxWidth().onFocusChanged { focusState ->
-                    viewModel.hashtagMentionsSuggestionsManager.onFocusChanged(
-                        focusState.isFocused
+            @Composable
+            fun CaptionField(viewModel: PostEditorViewModel) {
+                MaxLengthTextField(
+                    value = viewModel.caption,
+                    onValueChange = { viewModel.updateCaption(it) },
+                    textFieldModifier = Modifier.fillMaxWidth().onFocusChanged { focusState ->
+                        viewModel.hashtagMentionsSuggestionsManager.onFocusChanged(focusState.isFocused)
+                    },
+                    label = Res.string.caption,
+                    maxLength = viewModel.instance?.configuration?.statusConfig?.maxCharacters,
+                    minLines = 4,
+                    submit = {}
+                )
+            }
+
+            @OptIn(ExperimentalMaterial3Api::class)
+            @Composable
+            fun VisibilityField(viewModel: PostEditorViewModel) {
+                var isExpanded by remember { mutableStateOf(false) }
+                val visibility = viewModel.visibility
+                val (buttonText, buttonIcon) = when (visibility) {
+                    Visibility.PUBLIC -> stringResource(Res.string.audience_public) to Res.drawable.globe
+                    Visibility.UNLISTED -> stringResource(Res.string.unlisted) to Res.drawable.eye_off
+                    Visibility.PRIVATE -> stringResource(Res.string.followers_only) to Res.drawable.lock
+                    Visibility.DIRECT -> stringResource(Res.string.mentioned_only) to Res.drawable.send
+                }
+
+                ExposedDropdownMenuBox(
+                    expanded = isExpanded,
+                    onExpandedChange = { isExpanded = it }
+                ) {
+                    TextField(
+                        value = buttonText,
+                        onValueChange = { isExpanded = true },
+                        modifier = Modifier.fillMaxWidth().menuAnchor(
+                            ExposedDropdownMenuAnchorType.PrimaryNotEditable,
+                            enabled = true
+                        ),
+                        label = { Text(stringResource(Res.string.audience)) },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded) },
+                        leadingIcon = { Icon(vectorResource(buttonIcon), contentDescription = null) },
+                        colors = TextFieldDefaults.colors(
+                            unfocusedIndicatorColor = Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent,
+                            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                        ),
+                        shape = MaterialTheme.shapes.medium,
+                        readOnly = true
                     )
-                },
-                label = Res.string.caption,
-                maxLength = viewModel.instance?.configuration?.statusConfig?.maxCharacters,
-                minLines = 4,
-                submit = {})
+
+                    ExposedDropdownMenu(
+                        expanded = isExpanded,
+                        onDismissRequest = { isExpanded = false }
+                    ) {
+                        val options = buildList {
+                            if (!(viewModel.accountState.account?.locked ?: false)) {
+                                add(Visibility.PUBLIC to (stringResource(Res.string.audience_public) to Res.drawable.globe))
+                                add(Visibility.UNLISTED to (stringResource(Res.string.unlisted) to Res.drawable.eye_off))
+                            }
+                            add(Visibility.PRIVATE to (stringResource(Res.string.followers_only) to Res.drawable.lock))
+                            if (viewModel.capabilities.value.newPost.includeDirectVisibility) {
+                                add(Visibility.DIRECT to (stringResource(Res.string.mentioned_only) to Res.drawable.send))
+                            }
+                        }
+                        options.forEach { (option, labelAndIcon) ->
+                            DropdownMenuItem(
+                                text = { Text(labelAndIcon.first) },
+                                onClick = {
+                                    viewModel.visibility = option
+                                    isExpanded = false
+                                },
+                                leadingIcon = { Icon(vectorResource(labelAndIcon.second), contentDescription = null) },
+                                trailingIcon = {
+                                    if (visibility == option) {
+                                        Icon(
+                                            vectorResource(Res.drawable.confirm),
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+
+            CaptionField(viewModel)
 
             NewPostPref(
                 leadingIcon = Res.drawable.sensitive_content,
@@ -137,148 +214,7 @@ fun GeneralTab(
                 )
             }
 
-            var isExpandedVisibility by remember { mutableStateOf(false) }
-
-            val buttonText: String = when (viewModel.visibility) {
-                Visibility.PUBLIC -> stringResource(Res.string.audience_public)
-                Visibility.UNLISTED -> stringResource(Res.string.unlisted)
-                Visibility.PRIVATE -> stringResource(Res.string.followers_only)
-                Visibility.DIRECT -> stringResource(Res.string.mentioned_only)
-            }
-
-            val buttonIcon: DrawableResource = when (viewModel.visibility) {
-                Visibility.PUBLIC -> Res.drawable.globe
-                Visibility.UNLISTED -> Res.drawable.eye_off
-                Visibility.PRIVATE -> Res.drawable.lock
-                Visibility.DIRECT -> Res.drawable.send
-            }
-
-            ExposedDropdownMenuBox(
-                expanded = isExpandedVisibility,
-                onExpandedChange = { isExpandedVisibility = it }
-            ) {
-                TextField(
-                    value = buttonText,
-                    onValueChange = { _ ->
-                        isExpandedVisibility = true
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, enabled = true),
-                    label = { Text(stringResource(Res.string.audience)) },
-                    trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpandedVisibility)
-                    },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = vectorResource(buttonIcon),
-                            contentDescription = null
-                        )
-                    },
-                    colors = TextFieldDefaults.colors(
-                        unfocusedIndicatorColor = Color.Transparent,
-                        focusedIndicatorColor = Color.Transparent,
-                        focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                    ),
-                    shape = MaterialTheme.shapes.medium,
-                    readOnly = true
-                )
-
-                ExposedDropdownMenu(
-                    expanded = isExpandedVisibility, onDismissRequest = {
-                        isExpandedVisibility = false
-                    }) {
-                    if (!(viewModel.accountState.account?.locked ?: false)) {
-                        DropdownMenuItem(
-                            text = { Text(stringResource(Res.string.audience_public)) },
-                            onClick = {
-                                viewModel.visibility = Visibility.PUBLIC
-                                isExpandedVisibility = false
-                            },
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = vectorResource(Res.drawable.globe),
-                                    contentDescription = null
-                                )
-                            },
-                            trailingIcon = {
-                                if (viewModel.visibility == Visibility.PUBLIC) {
-                                    Icon(
-                                        imageVector = vectorResource(Res.drawable.confirm),
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.primary
-                                    )
-                                }
-                            })
-                        DropdownMenuItem(
-                            text = { Text(stringResource(Res.string.unlisted)) },
-                            onClick = {
-                                viewModel.visibility = Visibility.UNLISTED
-                                isExpandedVisibility = false
-                            },
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = vectorResource(Res.drawable.eye_off),
-                                    contentDescription = null
-                                )
-                            },
-                            trailingIcon = {
-                                if (viewModel.visibility == Visibility.UNLISTED) {
-                                    Icon(
-                                        imageVector = vectorResource(Res.drawable.confirm),
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.primary
-                                    )
-                                }
-                            })
-                    }
-                    DropdownMenuItem(
-                        text = { Text(stringResource(Res.string.followers_only)) },
-                        onClick = {
-                            viewModel.visibility = Visibility.PRIVATE
-                            isExpandedVisibility = false
-                        },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = vectorResource(Res.drawable.lock),
-                                contentDescription = null
-                            )
-                        },
-                        trailingIcon = {
-                            if (viewModel.visibility == Visibility.PRIVATE) {
-                                Icon(
-                                    imageVector = vectorResource(Res.drawable.confirm),
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                        })
-                    if (viewModel.capabilities.value.newPost.includeDirectVisibility) {
-                        DropdownMenuItem(
-                            text = { Text(stringResource(Res.string.mentioned_only)) },
-                            onClick = {
-                                viewModel.visibility = Visibility.DIRECT
-                                isExpandedVisibility = false
-                            },
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = vectorResource(Res.drawable.send),
-                                    contentDescription = null
-                                )
-                            },
-                            trailingIcon = {
-                                if (viewModel.visibility == Visibility.DIRECT) {
-                                    Icon(
-                                        imageVector = vectorResource(Res.drawable.confirm),
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.primary
-                                    )
-                                }
-                            })
-                    }
-                }
-            }
+            VisibilityField(viewModel)
 
             if (viewModel.capabilities.value.newPost.showCategoriesDropdown) {
                 var isCategoriesExpanded by remember { mutableStateOf(false) }
