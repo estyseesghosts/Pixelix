@@ -1,0 +1,260 @@
+package foxtails.taeda.ui.composables.direct_messages.conversations
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
+import androidx.compose.foundation.lazy.staggeredgrid.items
+import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import foxtails.taeda.di.injectViewModel
+import foxtails.taeda.ui.composables.widgets.InfiniteStaggeredGridHandler
+import foxtails.taeda.ui.composables.SheetItem
+import foxtails.taeda.ui.composables.states.EmptyState
+import foxtails.taeda.ui.composables.states.EndOfListComposable
+import foxtails.taeda.ui.composables.states.ErrorComposable
+import foxtails.taeda.ui.composables.states.EmptyStateComposable
+import foxtails.taeda.ui.composables.states.LoadingComposable
+import foxtails.taeda.ui.composables.widgets.CustomPullToRefreshBox
+import foxtails.taeda.ui.composables.widgets.ScreenScaffold
+import foxtails.taeda.ui.navigation.Destination
+import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.vectorResource
+import foxtails.taeda.app.generated.resources.Res
+import foxtails.taeda.app.generated.resources.add
+import foxtails.taeda.app.generated.resources.cancel
+import foxtails.taeda.app.generated.resources.confirm
+import foxtails.taeda.app.generated.resources.conversations
+import foxtails.taeda.app.generated.resources.direct_messages_encryption_description
+import foxtails.taeda.app.generated.resources.help
+import foxtails.taeda.app.generated.resources.mail
+import foxtails.taeda.app.generated.resources.new_direct_message
+import foxtails.taeda.app.generated.resources.select_recipient
+import foxtails.taeda.app.generated.resources.warning
+import foxtails.taeda.app.generated.resources.you_don_t_have_any_notifications
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ConversationsComposable(
+    navController: NavController,
+    viewModel: ConversationsViewModel = injectViewModel(key = "conversations-viewmodel-key") { conversationsViewModel }
+) {
+
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var showBottomSheet by remember { mutableStateOf(false) }
+    val showNewChatDialog = remember { mutableStateOf(false) }
+
+    val staggeredGridState = rememberLazyStaggeredGridState()
+
+    ScreenScaffold(
+        title = stringResource(Res.string.conversations),
+        navController = navController,
+        actions = {
+            Row {
+                IconButton(onClick = { showNewChatDialog.value = true }) {
+                    Icon(
+                        imageVector = vectorResource(Res.drawable.add),
+                        contentDescription = null
+                    )
+                }
+
+                IconButton(onClick = { showBottomSheet = true }) {
+                    Icon(
+                        imageVector = vectorResource(Res.drawable.help),
+                        tint = MaterialTheme.colorScheme.error,
+                        contentDescription = null
+                    )
+                }
+            }
+        }
+    ) {
+        CustomPullToRefreshBox(
+            isRefreshing = viewModel.conversationsState.isRefreshing,
+            onRefresh = { viewModel.refresh() },
+            modifier = Modifier.fillMaxSize(),
+            animatedBox = true
+        ) {
+            LazyVerticalStaggeredGrid(
+                columns = StaggeredGridCells.Adaptive(350.dp),
+                state = staggeredGridState,
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(top = 28.dp, bottom = 60.dp),
+            ) {
+                    if (viewModel.conversationsState.conversations.isNotEmpty()) {
+                        items(viewModel.conversationsState.conversations, key = {
+                            it.id
+                        }) {
+                            ConversationElementComposable(
+                                conversation = it, navController = navController
+                            )
+                        }
+
+                        if (!viewModel.conversationsState.isRefreshing) {
+                            item(span = StaggeredGridItemSpan.FullLine) {
+                               LoadingComposable(viewModel.conversationsState.isLoading)
+                            }
+                        }
+
+                        if (viewModel.conversationsState.endReached && viewModel.conversationsState.conversations.size > 10) {
+                            item(span = StaggeredGridItemSpan.FullLine) {
+                                EndOfListComposable()
+                            }
+                        }
+                    }
+                }
+
+            if (!viewModel.conversationsState.isLoading && viewModel.conversationsState.error.isEmpty() && viewModel.conversationsState.conversations.isEmpty()) {
+                EmptyStateComposable(
+                    EmptyState(
+                        icon = vectorResource(Res.drawable.mail),
+                        heading = stringResource(
+                            Res.string.you_don_t_have_any_notifications
+                        )
+                    )
+                )
+            }
+
+            if (!viewModel.conversationsState.isRefreshing && viewModel.conversationsState.conversations.isEmpty()) {
+                LoadingComposable(isLoading = viewModel.conversationsState.isLoading)
+            }
+            ErrorComposable(message = viewModel.conversationsState.error)
+        }
+
+        InfiniteStaggeredGridHandler(lazyStaggeredGridState = staggeredGridState, itemCount = viewModel.conversationsState.conversations.size) {
+            //viewModel.getNotificationsPaginated()
+        }
+
+        if (showBottomSheet) {
+            ModalBottomSheet(
+                onDismissRequest = {
+                    showBottomSheet = false
+                }, sheetState = sheetState
+            ) {
+                Box(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)
+                ) {
+                    Column {
+                        Spacer(modifier = Modifier.height(18.dp))
+
+                        SheetItem(
+                            header = stringResource(Res.string.warning),
+                            description = stringResource(Res.string.direct_messages_encryption_description)
+                        )
+
+                        Spacer(modifier = Modifier.height(18.dp))
+                    }
+                }
+            }
+        }
+        if (showNewChatDialog.value) {
+            CreateNewConversation(
+                close = {
+                    showNewChatDialog.value = false
+                    viewModel.newConversationUsername = TextFieldValue()
+                    viewModel.newConversationSelectedAccount = null
+                    viewModel.newConversationState = NewConversationState()
+                }, viewModel, navController
+            )
+        }
+    }
+}
+
+@Composable
+private fun CreateNewConversation(
+    close: () -> Unit, viewModel: ConversationsViewModel, navController: NavController
+) {
+
+    AlertDialog(title = {
+        Text(text = stringResource(Res.string.new_direct_message))
+    }, text = {
+        Column {
+            OutlinedTextField(
+                value = viewModel.newConversationUsername,
+                onValueChange = {
+                    viewModel.changeNewConversationUsername(it)
+                },
+                label = { Text(stringResource(Res.string.select_recipient)) },
+                shape = RoundedCornerShape(12.dp),
+            )
+            if (viewModel.newConversationState.suggestions.isNotEmpty()) {
+                Box(
+                    modifier = Modifier.padding(top = 4.dp).clip(shape = RoundedCornerShape(12.dp))
+                        .background(MaterialTheme.colorScheme.surface)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(12.dp)
+                    ) {
+                        viewModel.newConversationState.suggestions.map {
+                            Box(
+                                modifier = Modifier.fillMaxWidth().padding(8.dp).clickable {
+                                    viewModel.newConversationUsername = TextFieldValue(
+                                        it.acct, selection = TextRange(it.acct.length)
+                                    )
+                                    viewModel.newConversationSelectedAccount = it
+                                    viewModel.newConversationState = NewConversationState()
+                                }) {
+                                Text(
+                                    text = "@${it.acct}",
+                                    color = MaterialTheme.colorScheme.onBackground
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }, onDismissRequest = {
+        close()
+    }, confirmButton = {
+        TextButton(enabled = viewModel.newConversationSelectedAccount != null, onClick = {
+            if (viewModel.newConversationSelectedAccount != null) {
+                navController.navigate(Destination.Chat(viewModel.newConversationSelectedAccount!!.id))
+                close()
+            }
+        }) {
+            Text(stringResource(Res.string.confirm))
+        }
+    }, dismissButton = {
+        TextButton(onClick = {
+            close()
+        }) {
+            Text(stringResource(Res.string.cancel))
+        }
+    })
+
+}

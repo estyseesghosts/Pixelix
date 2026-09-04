@@ -1,0 +1,39 @@
+package foxtails.taeda.domain.service.general
+
+import foxtails.taeda.di.AppSingleton
+import foxtails.taeda.domain.service.pixelfed.PixelfedAppIconService
+import kotlinx.coroutines.flow.StateFlow
+import me.tatarka.inject.annotations.Inject
+import org.jetbrains.compose.resources.DrawableResource
+
+interface AppIconService {
+
+    val icons: List<DrawableResource>
+
+    val currentIcon: StateFlow<DrawableResource>
+
+    fun selectIcon(icon: DrawableResource)
+}
+
+interface AppIconManager {
+    fun getCurrentIcon(): DrawableResource
+    fun setCustomIcon(icon: DrawableResource)
+}
+
+@Inject
+@AppSingleton
+class AppIconServiceDelegate(
+    private val session: Session,
+    private val pixelfed: PixelfedAppIconService,
+) : AppIconService {
+
+    private val current: AppIconService
+        get() = when (session.backendType) {
+            else -> pixelfed
+        }
+    override val icons: List<DrawableResource> = current.icons
+    override val currentIcon: StateFlow<DrawableResource> = current.currentIcon
+
+    override fun selectIcon(icon: DrawableResource) = current.selectIcon(icon)
+
+}

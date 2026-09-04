@@ -1,0 +1,61 @@
+package foxtails.taeda.ui.composables.profile.own_profile
+
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import foxtails.taeda.domain.model.Credentials
+import foxtails.taeda.domain.model.SessionStorage
+import foxtails.taeda.domain.service.general.AuthService
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
+import me.tatarka.inject.annotations.Inject
+
+class AccountSwitchViewModel @Inject constructor(
+    private val authService: AuthService
+) : ViewModel() {
+    var sessionStorage by mutableStateOf<SessionStorage?>(null)
+    var currentCredentials by mutableStateOf<Credentials?>(null)
+
+    fun loadData() {
+        viewModelScope.launch {
+            loadCurrentCredentials()
+        }
+        loadAccounts()
+    }
+
+    private suspend fun loadCurrentCredentials() {
+        authService.activeUser
+            .map { authService.getCurrentSession() }
+            .collect {
+                currentCredentials = it
+            }
+    }
+
+    private fun loadAccounts() {
+        viewModelScope.launch {
+            sessionStorage = authService.getAvailableSessions()
+        }
+    }
+
+    fun switchAccount(newAccount: String, changedAccount: () -> Unit) {
+        val coroutine = viewModelScope.launch {
+            authService.openSessionIfExist(key = newAccount)
+        }
+
+        coroutine.invokeOnCompletion {
+            changedAccount()
+            loadAccounts()
+        }
+    }
+
+    fun removeAccount(key: String) {
+        val coroutine = viewModelScope.launch {
+            authService.deleteSession(key)
+        }
+        coroutine.invokeOnCompletion {
+            loadAccounts()
+        }
+    }
+}

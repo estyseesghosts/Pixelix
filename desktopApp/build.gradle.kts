@@ -26,7 +26,7 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(Dmg, Msi, Rpm)
-            packageName = "Pixelix"
+            packageName = "PLACEHOLDER"
             packageVersion = "1.0.0"
 
             //data store https://issuetracker.google.com/280205600
@@ -48,10 +48,10 @@ compose.desktop {
                       <array>
                         <dict>
                           <key>CFBundleURLName</key>
-                          <string>Pixelix auth redirect</string>
+                          <string>PLACEHOLDER auth redirect</string>
                           <key>CFBundleURLSchemes</key>
                           <array>
-                            <string>dev.ghostbyte.pixelix</string>
+                            <string>foxtails.taeda</string>
                           </array>
                         </dict>
                       </array>

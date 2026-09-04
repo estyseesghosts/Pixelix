@@ -1,4 +1,4 @@
-package com.daniebeler.pfpixelix
+package foxtails.taeda
 
 import java.io.File
 import kotlin.test.Test

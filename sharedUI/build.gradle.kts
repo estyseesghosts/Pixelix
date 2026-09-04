@@ -22,7 +22,7 @@ ktorfit {
 kotlin {
     jvmToolchain(21)
     android {
-        namespace = "com.daniebeler.pfpixelix"
+        namespace = "foxtails.taeda"
         compileSdk = 37
         minSdk = 26
 
@@ -194,7 +194,7 @@ kotlin {
 }
 
 compose.resources {
-    packageOfResClass = "pixelix.app.generated.resources"
+    packageOfResClass = "foxtails.taeda.app.generated.resources"
 }
 
 dependencies {

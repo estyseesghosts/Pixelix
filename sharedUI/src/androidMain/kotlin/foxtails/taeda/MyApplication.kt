@@ -1,0 +1,65 @@
+package foxtails.taeda
+
+import android.app.Application
+import android.content.Context
+import android.content.pm.ApplicationInfo
+import androidx.activity.ComponentActivity
+import androidx.work.Configuration
+import androidx.work.ListenableWorker
+import androidx.work.WorkerFactory
+import androidx.work.WorkerParameters
+import coil3.SingletonImageLoader
+import foxtails.taeda.di.AppComponent
+import foxtails.taeda.di.create
+import foxtails.taeda.domain.service.icon.AndroidAppIconManager
+import foxtails.taeda.utils.configureLogger
+import foxtails.taeda.widget.notifications.work_manager.LatestImageTask
+import foxtails.taeda.widget.notifications.work_manager.NotificationsTask
+import java.lang.ref.WeakReference
+
+
+class MyApplication : Application(), Configuration.Provider {
+
+    private val workerFactory: WorkerFactory by lazy { MyWorkerFactory(appComponent) }
+    override val workManagerConfiguration: Configuration
+        get() = Configuration.Builder().setWorkerFactory(workerFactory).build()
+
+    override fun onCreate() {
+        appComponent = AppComponent.create(
+            this,
+            AndroidAppIconManager(this)
+        )
+        SingletonImageLoader.setSafe {
+            appComponent.provideImageLoader()
+        }
+        val isDebug = (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
+        configureLogger(isDebug) //debug
+        super.onCreate()
+    }
+
+    companion object {
+        lateinit var appComponent: AppComponent
+            private set
+        var currentActivity: WeakReference<ComponentActivity>? = null
+    }
+}
+
+private class MyWorkerFactory(val appComponent: AppComponent): WorkerFactory() {
+    override fun createWorker(
+        appContext: Context,
+        workerClassName: String,
+        workerParameters: WorkerParameters
+    ): ListenableWorker? = when(workerClassName) {
+        NotificationsTask::class.java.name -> NotificationsTask(
+            appContext,
+            workerParameters,
+            appComponent
+        )
+        LatestImageTask::class.java.name -> LatestImageTask(
+            appContext,
+            workerParameters,
+            appComponent
+        )
+        else -> null
+    }
+}

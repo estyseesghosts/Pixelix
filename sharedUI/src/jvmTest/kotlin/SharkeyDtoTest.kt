@@ -1,13 +1,13 @@
-package com.daniebeler.pfpixelix
+package foxtails.taeda
 
-import com.daniebeler.pfpixelix.domain.model.Visibility
-import com.daniebeler.pfpixelix.domain.service.sharkey.model.SharkeyNoteDto
-import com.daniebeler.pfpixelix.domain.service.sharkey.model.SharkeyMessagingHistoryDto
-import com.daniebeler.pfpixelix.domain.service.sharkey.model.SharkeyNotificationDto
-import com.daniebeler.pfpixelix.domain.service.sharkey.model.SharkeyRequest
-import com.daniebeler.pfpixelix.domain.service.sharkey.model.SharkeyUserDto
-import com.daniebeler.pfpixelix.domain.service.sharkey.model.toFeaturedAccounts
-import com.daniebeler.pfpixelix.domain.service.sharkey.model.toDomain
+import foxtails.taeda.domain.model.Visibility
+import foxtails.taeda.domain.service.sharkey.model.SharkeyNoteDto
+import foxtails.taeda.domain.service.sharkey.model.SharkeyMessagingHistoryDto
+import foxtails.taeda.domain.service.sharkey.model.SharkeyNotificationDto
+import foxtails.taeda.domain.service.sharkey.model.SharkeyRequest
+import foxtails.taeda.domain.service.sharkey.model.SharkeyUserDto
+import foxtails.taeda.domain.service.sharkey.model.toFeaturedAccounts
+import foxtails.taeda.domain.service.sharkey.model.toDomain
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -121,7 +121,7 @@ class SharkeyDtoTest {
 
         assertFalse(notification.isRead ?: true)
         assertEquals("reactor", notification.toDomain().account.username)
-        assertEquals(com.daniebeler.pfpixelix.domain.model.NotificationType.FAVOURITE, notification.toDomain().type)
+        assertEquals(foxtails.taeda.domain.model.NotificationType.FAVOURITE, notification.toDomain().type)
         assertEquals("note", notification.toDomain().post?.id)
     }
 

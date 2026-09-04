@@ -1,0 +1,174 @@
+package foxtails.taeda.ui.composables.followers
+
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import foxtails.taeda.domain.repository.pixelfed.PixelfedApi
+import foxtails.taeda.domain.service.general.AccountService
+import foxtails.taeda.domain.service.utils.Resource
+import foxtails.taeda.domain.service.general.AuthService
+import foxtails.taeda.ui.composables.profile.AccountState
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import me.tatarka.inject.annotations.Inject
+
+class FollowersViewModel @Inject constructor(
+    private val accountService: AccountService,
+    private val authService: AuthService
+) : ViewModel() {
+
+    var accountState by mutableStateOf(AccountState())
+    var followersState by mutableStateOf(FollowersState())
+    var followingState by mutableStateOf(FollowingState())
+
+    var accountId: String = ""
+    var username: String = ""
+    var loggedInAccountId: String = ""
+
+    fun getAccount(userId: String) {
+        accountService.getAccount(userId, username).onEach { result ->
+            accountState = when (result) {
+                is Resource.Success -> {
+                    AccountState(account = result.data)
+                }
+
+                is Resource.Error -> {
+                    AccountState(error = result.message)
+                }
+
+                is Resource.Loading -> {
+                    AccountState(isLoading = true)
+                }
+            }
+        }.launchIn(viewModelScope)
+    }
+
+    fun setAccountValues(id: String, username: String) {
+        accountId = id
+        this.username = username
+    }
+
+    fun setLoggedInAccountIdValue() {
+        loggedInAccountId = authService.getCurrentSession()?.accountId ?: ""
+    }
+
+    fun getFollowersFirstLoad(refreshing: Boolean = false) {
+        accountService.getAccountsFollowers(accountId, username).onEach { result ->
+            followersState = when (result) {
+                is Resource.Success -> {
+                    val endReached = (result.data.data.size) < PixelfedApi.FOLLOWERS_LIMIT
+                    FollowersState(
+                        followers = result.data.data,
+                        endReached = endReached,
+                        cursor = result.data.next ?: ""
+                    )
+                }
+
+                is Resource.Error -> {
+                    FollowersState(error = result.message)
+                }
+
+                is Resource.Loading -> {
+                    FollowersState(
+                        isLoading = true,
+                        isRefreshing = refreshing,
+                        followers = followersState.followers
+                    )
+                }
+            }
+        }.launchIn(viewModelScope)
+    }
+
+    fun getFollowersPaginated() {
+        if (followersState.followers.isNotEmpty() && !followersState.isLoading && followersState.cursor.isNotEmpty()) {
+            accountService.getAccountsFollowers(
+                accountId, username, followersState.cursor
+            ).onEach { result ->
+                followersState = when (result) {
+                    is Resource.Success -> {
+                        val endReached = (result.data.data.size) < PixelfedApi.FOLLOWERS_LIMIT
+                        FollowersState(
+                            followers = followersState.followers + (result.data.data),
+                            endReached = endReached,
+                            cursor = result.data.next ?: ""
+                        )
+                    }
+
+                    is Resource.Error -> {
+                        FollowersState(error = result.message)
+                    }
+
+                    is Resource.Loading -> {
+                        FollowersState(
+                            isLoading = true,
+                            isRefreshing = false,
+                            followers = followersState.followers,
+                            cursor = followersState.cursor
+                        )
+                    }
+                }
+            }.launchIn(viewModelScope)
+        }
+    }
+
+    fun getFollowingFirstLoad(refreshing: Boolean = false) {
+        accountService.getAccountsFollowing(accountId, username).onEach { result ->
+            followingState = when (result) {
+                is Resource.Success -> {
+                    val endReached = (result.data.data.size) < PixelfedApi.FOLLOWERS_LIMIT
+                    FollowingState(
+                        following = result.data.data,
+                        endReached = endReached,
+                        cursor = result.data.next ?: ""
+                    )
+                }
+
+                is Resource.Error -> {
+                    FollowingState(error = result.message)
+                }
+
+                is Resource.Loading -> {
+                    FollowingState(
+                        isLoading = true,
+                        isRefreshing = refreshing,
+                        following = followingState.following
+                    )
+                }
+            }
+        }.launchIn(viewModelScope)
+    }
+
+    fun getFollowingPaginated() {
+        if (followingState.following.isNotEmpty() && !followingState.isLoading && followingState.cursor.isNotEmpty()) {
+            accountService.getAccountsFollowing(
+                accountId, username, followingState.cursor
+            ).onEach { result ->
+                followingState = when (result) {
+                    is Resource.Success -> {
+                        val endReached = (result.data.data.size) < PixelfedApi.FOLLOWERS_LIMIT
+                        FollowingState(
+                            following = followingState.following + (result.data.data),
+                            endReached = endReached,
+                            cursor = result.data.next ?: ""
+                        )
+                    }
+
+                    is Resource.Error -> {
+                        FollowingState(error = result.message)
+                    }
+
+                    is Resource.Loading -> {
+                        FollowingState(
+                            isLoading = true,
+                            isRefreshing = false,
+                            following = followingState.following,
+                            cursor = followingState.cursor
+                        )
+                    }
+                }
+            }.launchIn(viewModelScope)
+        }
+    }
+}

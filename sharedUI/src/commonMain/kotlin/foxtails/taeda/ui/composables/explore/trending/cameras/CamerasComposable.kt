@@ -1,0 +1,40 @@
+package foxtails.taeda.ui.composables.explore.trending.cameras
+
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.runtime.Composable
+import androidx.navigation.NavController
+import foxtails.taeda.di.injectViewModel
+import foxtails.taeda.ui.composables.explore.trending.PagePaginatedListScreen
+import foxtails.taeda.ui.composables.explore.trending.trending_hashtags.ExploreGridElement
+import foxtails.taeda.ui.navigation.Destination
+import foxtails.taeda.utils.StringFormat
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
+import foxtails.taeda.app.generated.resources.Res
+import foxtails.taeda.app.generated.resources.no_cameras
+import foxtails.taeda.app.generated.resources.posts
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun CamerasComposable(
+    navController: NavController,
+    viewModel: CamerasViewModel = injectViewModel(key = "cameras-key") { camerasViewModel }
+) {
+    PagePaginatedListScreen(
+        state = viewModel.pagePaginatedState,
+        onRefresh = { viewModel.getItems(true) },
+        onLoadMore = { viewModel.getItemsPaginated() },
+        emptyMessage = stringResource(Res.string.no_cameras),
+        itemKey = { it.id }
+    ) { camera ->
+        ExploreGridElement(
+            keyId = camera.name,
+            title = camera.name,
+            subtitle = "${StringFormat.groupDigits(camera.amount)} ${pluralStringResource(Res.plurals.posts, camera.amount)}",
+            onClick = { navController.navigate(Destination.CameraTimeline(camera.name)) },
+            fetcher = { viewModel.timelineService.getCameraTimeline(it, limit = 39) },
+            navController = navController
+        )
+    }
+}

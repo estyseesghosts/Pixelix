@@ -1,10 +1,10 @@
-package com.daniebeler.pfpixelix
+package foxtails.taeda
 
-import com.daniebeler.pfpixelix.domain.service.general.BackendType
-import com.daniebeler.pfpixelix.domain.service.general.toCapabilities
-import com.daniebeler.pfpixelix.domain.service.sharkey.model.SharkeyMiAuthCheckResponse
-import com.daniebeler.pfpixelix.domain.service.sharkey.model.SharkeyMiAuthUser
-import com.daniebeler.pfpixelix.domain.service.sharkey.model.toCredentials
+import foxtails.taeda.domain.service.general.BackendType
+import foxtails.taeda.domain.service.general.toCapabilities
+import foxtails.taeda.domain.service.sharkey.model.SharkeyMiAuthCheckResponse
+import foxtails.taeda.domain.service.sharkey.model.SharkeyMiAuthUser
+import foxtails.taeda.domain.service.sharkey.model.toCredentials
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
